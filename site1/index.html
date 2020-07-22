@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Новый сайт</title>
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+	
 	<link rel="stylesheet" href="css/bootstrap.css">
 	<link rel="stylesheet" href="css/styles.css">
 	
@@ -11,43 +11,80 @@
 <body>
 	
 	<div class="section">
-		<h1 class="header"><span class="spa">Получите видео-инструкцию</span><strong>Как редактировать видео файл</strong></h1>
-		<div class="main">
-		<div class="video">
-				<iframe width="560" height="300" src="https://www.youtube.com/embed/A3KjwiP8Zpw?controls=0" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+		<div class="container">
+			<!--Первый row-->
+			<div class="row">
+				<div class="col-lg-6 offset-lg-3">
+					<h1 class="header text-center">
+					<span>Получите видеоинструкцию</span>
+					<strong class="text-uppercase">Как обрабатывать видео</strong>
+				</h1>
 				</div>
-				<div class="form">
-					<p class="form-header">Введите свой emal</p>
-					<form action="#">
-						<input type="text" placeholder="Ваше имя">
-						<input type="text" placeholder="Ваш emal">
-						<button class="btn">Получить инструкцию</button>
-					</form>
+			</div>
+			<!--Второй row-->
+			<div class="row">
+				<div class="col-lg-6 offset-lg-1 col-md-8 offset-md-2">
+					<div class="video">
+						<iframe width="100%" height="315" src="https://www.youtube.com/embed/1BiqAn3Xdgg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+					</div>
+				</div>
+				<div class="col-lg-4 offset-lg-0 col-md-8 offset-md-2">
+					<div class="form">
+						<p class="form-header text-center">Введите свой email</p>
+						<form action="#">
+							<input type="text" class="form-control form-control-lg" placeholder="Ваше имя">
+							<input type="text" class="form-control form-control-lg" placeholder="Ваш email">
+							<button class="btn btn-primary btn-lg btn-block form-btn">Получить инструкцию</button>
+						</form>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
 
 	<div class="section">
-		<h2 class="feature-header">Почему нужно сделать это сейчас?</h2>
-		<div class="feature">
-			<div class="col">
-				<img src="img/01.png" alt="Первое приемущество">
-				<p>Первое приемущество</p>
-			</div>
-			<div class="col">
-				<img src="img/02.png" alt="Второе приемущество">
-				<p>Второе приемущество</p>
-			</div>
-			<div class="col">
-				<img src="img/03.png" alt="Третье приемущество">
-				<p>Третье приемущество</p>
-			</div>
-			<div class="col">
-				<img src="img/04.png" alt="Четвертое приемущество">
-				<p>Четвертое приемущество</p>
+		<div class="container">
+			<div class="row">
+			<div class="col-lg-12 cpl-xs-12 col-sm-12">
+				<h2 class="section-header text-uppercase text-center">Для чего это нужно сделать?</h2>
 			</div>
 		</div>
-		<button class="btn">Получить инструкцию</button>
+
+		<div class="feature text-center">
+			<div class="row">
+				<div class="col-lg-3 col-md-6">
+					<div class="feature-box">
+						<img src="img/01.png" alt="1 преимущество">
+						<p>Первое преимущество</p>
+					</div>
+				</div>
+				<div class="col-lg-3 col-md-6">
+					<div class="feature-box">
+						<img src="img/02.png" alt="2 преимущество">
+						<p>Второе преимущество</p>
+					</div>
+				</div>
+				<div class="col-lg-3 col-md-6">
+					<div class="feature-box">
+						<img src="img/03.png" alt="3 преимущество">
+						<p>Третье преимущество</p>
+					</div>
+				</div>
+				<div class="col-lg-3 col-md-6">
+					<div class="feature-box">
+						<img src="img/04.png" alt="4 преимущество">
+						<p>Четвертое преимущество</p>
+					</div>
+				</div>
+			</div>
+		</div>
+			<!--кнопка нижняя row-->
+			<div class="text-center">
+				
+										<button class="btn btn-primary btn-lg form-btn center-block">Получить инструкцию</button>
+			</div>
+
+		</div>
 	</div>
 	
 </body>
