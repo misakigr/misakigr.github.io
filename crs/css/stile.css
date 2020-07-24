@@ -1,7 +1,7 @@
 /* colors */
 /* Basic setting */
 html {
-  font-size: 10px;
+  font-size: 8px;
 }
 .button {
   background-color: #fcb303;
@@ -30,6 +30,9 @@ main {
 .wrap-block {
   display: table-cell;
   vertical-align: middle;
+}
+.phone-block {
+  text-align: right;
 }
 .phone-link {
   display: inline-block;
