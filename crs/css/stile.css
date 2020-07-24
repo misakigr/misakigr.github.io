@@ -1,7 +1,7 @@
 /* colors */
 /* Basic setting */
 html {
-  font-size: 8px;
+  font-size: 10px;
 }
 .button {
   background-color: #fcb303;
@@ -19,6 +19,9 @@ section {
 main {
   padding: 3rem;
 }
+main-content {
+  margin-top: 10px;
+}
 .header {
   height: 7rem;
 }
@@ -32,7 +35,7 @@ main {
   vertical-align: middle;
 }
 .phone-block {
-  text-align: right;
+  text-align: center;
 }
 .phone-link {
   display: inline-block;
