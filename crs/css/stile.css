@@ -22,6 +22,20 @@ section {
 .main-content {
   margin-top: 10px;
 }
+.main-content h1 {
+  font-size: 4rem;
+  text-transform: uppercase;
+}
+.main-subtitle {
+  font-size: 1.8rem;
+}
+span {
+  display: inline-block;
+  padding: 3rem 5rem;
+  color: #ffffff;
+  background-color: #46b814;
+  font-size: 2rem;
+}
 .header {
   height: 7rem;
 }
