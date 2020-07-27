@@ -16,16 +16,14 @@ section {
   padding: 10rem 0;
 }
 /* main */
-main {
+.main {
   padding: 3rem;
 }
-main-content {
-  margin-top: 20px;
+.main-content {
+  margin-top: 10px;
 }
 .header {
   height: 7rem;
-
-
 }
 .wrap {
   display: table;
