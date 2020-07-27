@@ -36,7 +36,7 @@ span {
   padding: 2rem 4rem;
   color: #ffffff;
   background-color: #46b814;
-  font-size: 2rem;
+  font-size: 1.8rem;
 }
 .header {
   height: 7rem;
@@ -60,4 +60,8 @@ span {
   font-size: 1.6rem;
   height: 7rem;
   line-height: 7rem;
+}
+h2 {
+  margin-top: 2rem;
+  font-size: 1.8rem;
 }
