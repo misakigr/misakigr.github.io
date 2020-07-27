@@ -1,7 +1,7 @@
 /* colors */
 /* Basic setting */
 html {
-  font-size: 8px;
+  font-size: 10px;
 }
 .button {
   background-color: #fcb303;
@@ -17,13 +17,15 @@ section {
 }
 /* main */
 .main {
-  padding: 3rem;
+  padding: 3rem 0;
 }
 .main-content {
   margin-top: 10px;
 }
 .main-content h1 {
-  font-size: 4rem;
+  margin-top: 2rem;
+  font-size: 3rem;
+  line-height: 1.45;
   text-transform: uppercase;
 }
 .main-subtitle {
@@ -31,7 +33,7 @@ section {
 }
 span {
   display: inline-block;
-  padding: 3rem 5rem;
+  padding: 2rem 4rem;
   color: #ffffff;
   background-color: #46b814;
   font-size: 2rem;
@@ -55,7 +57,7 @@ span {
   display: inline-block;
   color: #1a1820;
   font-weight: 900;
-  font-size: 2rem;
+  font-size: 1.8rem;
   height: 7rem;
   line-height: 7rem;
 }
