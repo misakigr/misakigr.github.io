@@ -15,6 +15,13 @@ html {
 section {
   padding: 10rem 0;
 }
+
+.container {
+
+display: block;
+
+}
+
 /* main */
 .main {
   padding: 3rem 0;
