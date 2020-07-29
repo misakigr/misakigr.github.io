@@ -10,10 +10,12 @@ html {
   border-radius: 8px;
   text-transform: uppercase;
   border: none;
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
 }
-.button-block {
-  display: table-cell;
-  vertical-align: middle;
+.button:hover {
+  cursor: pointer;
+  background-color: #e3a103;
 }
 /* Typografhy */
 section {

@@ -18,9 +18,10 @@ html {
 	border-radius:8px;
 	text-transform: uppercase;
 	border: none;
-	&-block{
-		display: table-cell;
-		vertical-align: middle;
+	transition: all 0.2s;
+	&:hover{
+			cursor: pointer;
+			background-color: darken(@btn-color, 5%);
 
 	}
 }
