@@ -138,6 +138,22 @@
       </div>
     </section>
     
-    <script src="http://getbootstrap.com/assets/js/ie10-viewport-bug-workaround.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    
+    <!-- Подключаем стили slick slider -->
+    <link rel="stylesheet" href="slick/slick.css">
+    <link rel="stylesheet" href="slick/slick-theme.css">
+    <!-- Подключаем саму библиотеку -->
+    <script src="slick/slick.min.js"></script>
+
+    <!-- Инициализируем слайдер -->
+    <script>
+      $(document).ready(function(){
+  $('.features-slider').slick({
+    setting-name: setting-value
+  });
+});
+    </script>
+
   </body>
 </html>
