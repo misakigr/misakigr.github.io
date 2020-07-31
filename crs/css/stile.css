@@ -29,6 +29,11 @@ a:focus {
 section {
   padding: 10rem 0;
 }
+.setion-header {
+  margin: 2rem 0 10rem;
+  font-size: 3.6rem;
+  text-align: center;
+}
 /* main */
 .main {
   padding: 3rem 0;
@@ -126,6 +131,33 @@ small {
 }
 .main-form strong {
   font-size: 1.8rem;
+}
+/* Оформление секции с преимуществами */
+.features-slider {
+  text-align: center;
+}
+.features-slider h3 {
+  font-size: 2rem;
+  margin-bottom: 3rem;
+}
+.features-slider p {
+  display: inline-block;
+  width: 80%;
+  font-size: 1.6rem;
+}
+.features-block {
+  text-align: center;
+}
+.features-img {
+  margin-bottom: 3rem;
+}
+.features-img img {
+  height: 8rem;
+  display: block;
+  margin: 0 auto;
+}
+.slick-active {
+  outline: none;
 }
 @media (max-width: 991px) {
   .phone-block {
