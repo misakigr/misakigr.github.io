@@ -15,7 +15,7 @@ a:hover{
 	text-decoration: none;
 }
 body
-button, input, a {
+button, input, a, textarea {
 	&:focus {
 		outline: none;
 	}
@@ -220,12 +220,24 @@ margin-top: 1.5rem;
 	
 	/* Оформление модальных окон */
 	.popup {
+		display: none;
 		position: fixed;
-		left: 50%;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		right: 0;
+		width: 100px;
+		height: 100%;
+		z-index: 9;
+		background-color: rgba(0, 0, 0, 0.5);
+	&-content {
+		position: fixed;
+			left: 50%;
 		top: 10%;
 		background-color: @light;
 		transform: translateX(-50%);
-		padding: 4rem 6rem;
+		padding: 3rem 6rem;
+	}
 		&-form {
 			margin-top: 3rem;
 			padding: 0;
