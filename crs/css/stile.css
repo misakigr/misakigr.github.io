@@ -179,6 +179,28 @@ small {
   background: url(../img/right_arrow.svg) center no-repeat;
   background-size: 100%;
 }
+/* Оформление модальных окон */
+.popup {
+  position: fixed;
+  left: 50%;
+  top: 10%;
+  background-color: #ffffff;
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
+  padding: 4rem 6rem;
+}
+.popup-form {
+  margin-top: 0;
+  padding: 0;
+}
+.popup-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.popup-content {
+  text-align: center;
+}
 @media (max-width: 991px) {
   .phone-block {
     text-align: center;
