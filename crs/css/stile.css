@@ -197,7 +197,7 @@ small {
 .popup-content {
   position: fixed;
   left: 50%;
-  top: 10%;
+  top: 5%;
   background-color: #ffffff;
   -webkit-transform: translateX(-50%);
           transform: translateX(-50%);
@@ -210,7 +210,7 @@ small {
 .popup-close {
   position: absolute;
   top: -2rem;
-  right: -2rem;
+  right: -3rem;
   width: 2rem;
   text-align: center;
   border: none;
