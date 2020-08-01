@@ -196,13 +196,14 @@ small {
 }
 .popup-close {
   position: absolute;
-  top: -1rem;
+  top: -2rem;
   right: -2rem;
   width: 2rem;
   text-align: center;
   border: none;
   background-color: transparent;
-  font-size: 3px;
+  font-size: 3rem;
+  color: #ffffff;
 }
 .popup-content {
   text-align: center;
