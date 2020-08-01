@@ -101,6 +101,7 @@ h2 {
   margin: 2rem 0;
   width: 100%;
   border: 1px solid #dddddd;
+  border-radius: 5px;
   padding: 1.5rem;
 }
 /* Подписи к полям */
@@ -190,13 +191,18 @@ small {
   padding: 4rem 6rem;
 }
 .popup-form {
-  margin-top: 0;
+  margin-top: 3rem;
   padding: 0;
 }
 .popup-close {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -1rem;
+  right: -2rem;
+  width: 2rem;
+  text-align: center;
+  border: none;
+  background-color: transparent;
+  font-size: 3px;
 }
 .popup-content {
   text-align: center;
