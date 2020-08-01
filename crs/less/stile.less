@@ -175,7 +175,7 @@ margin-top: 1.5rem;
 		p {
 			display: inline-block;
 			width: 80%;
-			font-size: 1.6rem;
+			font-size: 1.4rem;
 		}
 	}
 	&-block {
@@ -195,6 +195,29 @@ margin-top: 1.5rem;
 .slick-active {
 	outline: none;
 }
+
+.arrow {
+	top: 50%;
+	transform:translateY(-50%);
+	position:absolute;
+	z-index: 99;
+  width: 2rem;
+  height: 2rem;
+  border:none;
+}
+  
+	.prev{
+		left: 0%;
+		background: url(../img/left_arrow.svg) center no-repeat;
+  background-size: 70%;
+	}
+	.next{
+		right: 0%;
+		background: url(../img/right_arrow.svg) center no-repeat;
+  background-size: 70%;
+	}
+	
+	
 @media (max-width: 991px) {
 	.phone-block {
 		text-align: center;
