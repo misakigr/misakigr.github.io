@@ -165,7 +165,8 @@ small {
   margin-bottom: 3rem;
 }
 .features-img img {
-  height: 8rem;
+  width: 5rem;
+  height: 5rem;
   display: block;
   margin: 0 auto;
 }
