@@ -199,6 +199,82 @@
         </div>
       </div>
     </section>
+
+    <section class="feedback">
+      <div class="container">
+
+        <div class="section-header">
+          <h2>Отзывы</h2>
+        </div>
+
+        <div class="feedback-slider">
+          <div class="feedback-slider_item">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="fotorama">
+                  <div class="photo-slider_item"><img src="img/feedback/photo/1.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/2.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/3.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/4.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/5.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/6.jpg" alt=""></div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <p>Объект: <strong>г. Москва, Нахимовский проспект, д. 10</strong></p>
+                <p>Площадь: <strong>357 м2</strong></p>
+                <p>Выполнен <strong>за: 10 дней</strong></p>
+                <p>Стоимость: <strong>550 рублей за квадратный метр</strong></p>
+                <p>Особенности: <strong>перепады достигали до 6 см</strong></p>
+              </div>
+            </div>
+          </div>
+          <div class="feedback-slider_item">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="fotorama">
+                  <div class="photo-slider_item"><img src="img/feedback/photo/1.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/2.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/3.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/4.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/5.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/6.jpg" alt=""></div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <p>Объект: <strong>г. Москва, Нахимовский проспект, д. 10</strong></p>
+                <p>Площадь: <strong>357 м2</strong></p>
+                <p>Выполнен <strong>за: 10 дней</strong></p>
+                <p>Стоимость: <strong>550 рублей за квадратный метр</strong></p>
+                <p>Особенности: <strong>перепады достигали до 6 см</strong></p>
+              </div>
+            </div>
+          </div>
+          <div class="feedback-slider_item">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="fotorama">
+                  <div class="photo-slider_item"><img src="img/feedback/photo/1.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/2.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/3.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/4.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/5.jpg" alt=""></div>
+                  <div class="photo-slider_item"><img src="img/feedback/photo/6.jpg" alt=""></div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <p>Объект: <strong>г. Москва, Нахимовский проспект, д. 10</strong></p>
+                <p>Площадь: <strong>357 м2</strong></p>
+                <p>Выполнен <strong>за: 10 дней</strong></p>
+                <p>Стоимость: <strong>550 рублей за квадратный метр</strong></p>
+                <p>Особенности: <strong>перепады достигали до 6 см</strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
     
 <!-- Модальные окна -->
 <!-- Получить консультацию -->
@@ -235,6 +311,10 @@
     <!-- Подключаем саму библиотеку -->
     <script src="slick/slick.min.js"></script>
 
+
+    <link  href="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.js"></script>
+
     <!-- Инициализируем слайдер -->
     <script>
       $(document).ready(function(){
@@ -246,6 +326,12 @@
           event.preventDefault();
           $('.popup').fadeOut();
         });
+        /*Слайдер с отзывами*/
+        $('.feedback-slider').slick({
+          
+        });
+
+   /*Слайдер с преимуществами*/    
   $('.features-slider').slick({
     infinite: true,
   slidesToShow: 4,

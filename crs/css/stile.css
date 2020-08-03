@@ -248,6 +248,11 @@ small {
   background-size: 100%;
   vertical-align: middle;
 }
+/* Секция с отзывами */
+.feedback {
+  background: url(../img/feedback/feedback-bg.jpg) center;
+  background-size: cover;
+}
 /* Оформление модальных окон */
 .popup {
   display: none;
