@@ -68,7 +68,7 @@ background: #fff url(../img/beschovnaya.jpg) center center;
 		font-size: 2.5rem;
 		line-height: 1.45;
 		text-transform: uppercase;
-		color:@light;
+		color:@text;
 	}
 }
 &-subtitle{
@@ -117,7 +117,7 @@ text-align: center;
 	}
 &-link{
 		display: inline-block;
-	color:@light;
+	color:@text;
 	font-weight: 900;
 	font-size: 1.6rem;
 	height: 7rem;
@@ -235,7 +235,13 @@ margin-top: 1.5rem;
 	
 /* Секция с ценами */
 .price {
-	background: @icon-color;
+		.container {
+			margin-top: -5rem;
+		}
+		p {
+			margin-top: 3rem;
+		}
+		background: @icon-color;
 	&-header-btn {
 	margin-top: 2.5rem;
 		}

@@ -197,6 +197,12 @@ small {
 .price {
   background: #46b814;
 }
+.price .container {
+  margin-top: -5rem;
+}
+.price p {
+  margin-top: 3rem;
+}
 .price-header-btn {
   margin-top: 2.5rem;
 }
