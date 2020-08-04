@@ -35,6 +35,7 @@ section {
   text-align: center;
 }
 .section-header-light {
+h2 {font-size: 1.6rem}
   color: #ffffff;
 }
 .section-header h2 {
