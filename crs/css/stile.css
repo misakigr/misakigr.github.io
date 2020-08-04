@@ -250,6 +250,7 @@ small {
 }
 /* Секция с отзывами */
 .feedback {
+ font-size: 1.4rem;
   background: url(../img/feedback/feedback-bg.jpg) center;
   background-size: cover;
 }
