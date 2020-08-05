@@ -91,7 +91,10 @@ section {
 .main-subtitle {
   font-size: 1.8rem;
   margin-bottom: 4rem;
-  font-size: 2.4em;
+  font-size: 2.4rem;
+}
+.main p {
+  margin-top: 3rem;
 }
 .main-form {
   padding: 4rem 5rem;
@@ -151,7 +154,7 @@ small {
 }
 .features-slider h3 {
   font-size: 2rem;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 .features-slider p {
   display: inline-block;
@@ -185,12 +188,12 @@ small {
 }
 .prev {
   left: 0%;
-  background: url(../img/left_arrow.svg) center no-repeat;
+  background: url(../img/leftarrow.svg) center no-repeat;
   background-size: 100%;
 }
 .next {
   right: -5%;
-  background: url(../img/right_arrow.svg) center no-repeat;
+  background: url(../img/rightarrow.svg) center no-repeat;
   background-size: 100%;
 }
 /* Секция с ценами */
@@ -254,6 +257,7 @@ small {
   background: url(../img/feedback/feedback-bg.jpg) center;
   background-size: cover;
   border-bottom: none;
+  text-align: center;
 }
 .feedback-prev-btn {
   left: -4rem;
