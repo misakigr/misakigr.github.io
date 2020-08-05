@@ -26,6 +26,34 @@ textarea:focus {
   cursor: pointer;
   background-color: #e3a103;
 }
+.form {
+  /* Поле для ввода */
+  /* Подписи к полям */
+}
+.form-input {
+  display: block;
+  margin: 2rem 0;
+  width: 100%;
+  border: 1px solid #dddddd;
+  border-radius: 5px;
+  padding: 1.5rem;
+}
+.form label {
+  position: absolute;
+  display: inline-block;
+  padding: 0.5rem;
+  left: 50%;
+  font-size: 1.3rem;
+  -webkit-transform: translateX(-50%) translateY(-50%);
+          transform: translateX(-50%) translateY(-50%);
+  background-color: #ffffff;
+}
+.form-btn {
+  display: block;
+  width: 100%;
+  height: 5.5rem;
+  font-size: 1.2rem;
+}
 /* Typografhy */
 section {
   padding: 10rem 0;
@@ -104,43 +132,17 @@ h2 {
   margin-top: 2rem;
   font-size: 1.5rem;
 }
-/* Поле для ввода */
-.main-form-input {
-  display: block;
-  margin: 2rem 0;
-  width: 100%;
-  border: 1px solid #dddddd;
-  border-radius: 5px;
-  padding: 1.5rem;
-}
-/* Подписи к полям */
-label {
-  position: absolute;
-  display: inline-block;
-  padding: 0.5rem;
-  left: 50%;
-  font-size: 1.3rem;
-  -webkit-transform: translateX(-50%) translateY(-50%);
-          transform: translateX(-50%) translateY(-50%);
-  background-color: #ffffff;
-}
-/* Подпись под кнопкой */
-small {
-  display: block;
-  margin-top: 1.5rem;
-}
-.main-form-btn {
-  display: block;
-  width: 100%;
-  height: 5.5rem;
-  font-size: 1.2rem;
-}
 .main-form {
   margin-bottom: 4rem;
   font-size: 1.5rem;
 }
 .main-form strong {
   font-size: 1.8rem;
+}
+/* Подпись под кнопкой */
+small {
+  display: block;
+  margin-top: 1.5rem;
 }
 /* Оформление секции с преимуществами */
 .features-section-header h2 {

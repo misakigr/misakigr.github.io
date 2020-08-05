@@ -35,6 +35,38 @@ button, input, a, textarea {
 	}
 }
 
+.form {
+	/* Поле для ввода */
+&-input{
+		display: block;
+		margin: 2rem 0;
+		width: 100%;
+		border: 1px solid @border-input;
+		border-radius: 5px;
+		padding: 1.5rem;
+
+}
+/* Подписи к полям */
+label {
+		position: absolute;
+		display: inline-block;
+		padding: 0.5rem;
+		left: 50%;
+		font-size: 1.3rem;
+		transform: translateX(-50%) translateY(-50%);
+		background-color: @light;
+		
+}
+&-btn {
+	
+	display: block;
+	width: 100%;
+	height: 5.5rem;
+	font-size: 1.2rem;
+
+}
+}
+
 /* Typografhy */
 section {
 	padding: 10rem 0;
@@ -132,46 +164,18 @@ h2{
 		
 }
 
-	/* Поле для ввода */
-.main-form-input{
-		display: block;
-		margin: 2rem 0;
-		width: 100%;
-		border: 1px solid @border-input;
-		border-radius: 5px;
-		padding: 1.5rem;
-
-}
-/* Подписи к полям */
-label {
-		position: absolute;
-		display: inline-block;
-		padding: 0.5rem;
-		left: 50%;
-		font-size: 1.3rem;
-		transform: translateX(-50%) translateY(-50%);
-		background-color: @light;
-		
-}
-/* Подпись под кнопкой */
-small {
-display: block;
-margin-top: 1.5rem;
-}
-.main-form-btn {
 	
-	display: block;
-	width: 100%;
-	height: 5.5rem;
-	font-size: 1.2rem;
-
-}
 .main-form{
 	margin-bottom: 4rem;
 	font-size: 1.5rem;
 	strong {
 		font-size: 1.8rem;
 	}
+}
+/* Подпись под кнопкой */
+small {
+display: block;
+margin-top: 1.5rem;
 }
 /* Оформление секции с преимуществами */
 .features {
