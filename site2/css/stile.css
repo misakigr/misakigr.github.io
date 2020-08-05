@@ -302,9 +302,9 @@ small {
   top: 50%;
   -webkit-transform: translateY(-50%);
           transform: translateY(-50%);
-  width: 3rem;
-  height: 1.2rem;
-  background-color: #fcb303;
+  width: 4rem;
+  height: 5rem;
+  background-color: #46b814;
   border: none;
 }
 .feedback-slider-btn img {
@@ -314,7 +314,6 @@ small {
   width: 100%;
   max-width: auto;
   display: inline-block;
-  margin-bottom: 2rem;
 }
 .feedback-form {
   margin-top: 5rem;
