@@ -97,6 +97,11 @@ section {
   padding: 4rem 5rem;
   background-color: #ffffff;
   text-align: center;
+  margin-bottom: 4rem;
+  font-size: 1.5rem;
+}
+.main-form strong {
+  font-size: 1.8rem;
 }
 .main span {
   display: inline-block;
@@ -131,13 +136,6 @@ section {
 h2 {
   margin-top: 2rem;
   font-size: 1.5rem;
-}
-.main-form {
-  margin-bottom: 4rem;
-  font-size: 1.5rem;
-}
-.main-form strong {
-  font-size: 1.8rem;
 }
 /* Подпись под кнопкой */
 small {
@@ -252,8 +250,10 @@ small {
 }
 /* Секция с отзывами */
 .feedback {
+  position: relative;
   background: url(../img/feedback/feedback-bg.jpg) center;
   background-size: cover;
+  border-bottom: none;
 }
 .feedback-prev-btn {
   left: -4rem;
@@ -316,6 +316,31 @@ small {
   display: inline-block;
   margin-bottom: 2rem;
 }
+.feedback-form {
+  margin-top: 5rem;
+  padding: 4rem 10rem;
+  background-color: #ffffff;
+  text-align: center;
+}
+.feedback-form h3 {
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+.feedback-form label {
+  -webkit-transform: translate(-50%, 5px);
+          transform: translate(-50%, 5px);
+}
+.feedback-btn {
+  max-width: 30rem;
+  margin: auto;
+}
+.hand {
+  position: absolute;
+  bottom: 15rem;
+  left: 12rem;
+  max-width: 20rem;
+  margin: auto;
+}
 /* Оформление модальных окон */
 .popup {
   display: none;
@@ -332,7 +357,7 @@ small {
 .popup-content {
   position: fixed;
   left: 50%;
-  top: 5%;
+  top: 7%;
   background-color: #ffffff;
   -webkit-transform: translateX(-50%);
           transform: translateX(-50%);
@@ -356,6 +381,14 @@ small {
 .popup-content {
   text-align: center;
 }
+@media (max-width: 1199px) {
+  .feedback-form {
+    padding: 3rem 5rem;
+  }
+  .feedback .fotorama {
+    margin-bottom: 3rem;
+  }
+}
 @media (max-width: 991px) {
   .phone-block {
     text-align: center;
@@ -377,15 +410,27 @@ small {
   .section-header-light {
     margin-bottom: 0;
   }
+  .hand {
+    display: none;
+  }
 }
 @media (max-width: 767px) {
   .main {
     background-position: top right;
+  }
+  .main h1 {
+    font-size: 2.2rem;
   }
   .header {
     text-align: center;
   }
   .wrap-block {
     text-align: center;
+  }
+  .feedback-prev-btn {
+    left: 0;
+  }
+  .feedback-next-btn {
+    right: 0;
   }
 }
