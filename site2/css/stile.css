@@ -339,9 +339,9 @@ small {
 }
 .hand {
   position: absolute;
-  bottom: 15rem;
-  left: 12rem;
-  max-width: 20rem;
+  bottom: 15%;
+  left: 10%;
+  max-width: 15%;
   margin: auto;
 }
 /* Оформление модальных окон */
@@ -412,9 +412,6 @@ small {
   }
   .section-header-light {
     margin-bottom: 0;
-  }
-  .hand {
-    display: none;
   }
 }
 @media (max-width: 767px) {
