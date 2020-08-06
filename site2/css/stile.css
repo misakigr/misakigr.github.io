@@ -434,6 +434,6 @@ small {
     left: 0;
   }
   .feedback-next-btn {
-    right: 0;
+    right: 4rem;
   }
 }
