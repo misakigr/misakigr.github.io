@@ -300,6 +300,7 @@ small {
 }
 .feedback-slider p {
   font-size: 1.6rem;
+  text-align: left;
 }
 .feedback-slider-btn {
   position: absolute;
@@ -431,9 +432,15 @@ small {
     padding: 5rem 3rem;
   }
   .feedback-prev-btn {
-    left: 0;
+    left: -1.4rem;
   }
   .feedback-next-btn {
-    right: 0;
+    right: -1.4rem;
+  }
+  .prev {
+    left: -1.4rem;
+  }
+  .next {
+    right: -1.4rem;
   }
 }
