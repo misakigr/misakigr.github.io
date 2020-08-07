@@ -345,6 +345,15 @@ small {
   max-width: 15%;
   margin: auto;
 }
+.scheme {
+  background: #ffffff url(../img/scheme/cement.png) bottom right 15% no-repeat;
+}
+.scheme-block {
+  min-height: 30rem;
+}
+.scheme-block h3 {
+  font-size: 2rem;
+}
 /* Оформление модальных окон */
 .popup {
   display: none;
@@ -442,5 +451,12 @@ small {
   }
   .next {
     right: -1.4rem;
+  }
+  .scheme {
+    background: none;
+    text-align: center;
+  }
+  .scheme-block {
+    min-height: 20rem;
   }
 }
