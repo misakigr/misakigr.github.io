@@ -7,6 +7,7 @@
 @light: #fff;
 @border-input: #dddddd;
 @problems_color: #e8e8e8;
+@upsell-bg: #286b0a;
 
 /* Basic setting */
 html {
@@ -457,7 +458,7 @@ margin-top: 1.5rem;
 	}	
 }
 
-/* Мы развеем все опасения */
+/* Мы развеем все сомнения */
 .problems {
 	position: relative;
 	&-women{
@@ -503,11 +504,12 @@ margin-top: 1.5rem;
 		}
 		ul li:before {
 			background: url(../img/problems/bad.svg) center no-repeat;
-			background-size: 60%;
+			background-size: 55%;
 		}
 
 	}
 	&_good {
+		border-color: @icon-color;
 		ul li:before {
 			background: url(../img/problems/good.svg) center no-repeat;
 			background-size: 60%;
@@ -515,6 +517,53 @@ margin-top: 1.5rem;
 	}
 }
 }
+
+
+/* Материалы */
+.materials {
+	background: @bg-light;
+	p {
+		margin-top: 3rem;
+	}
+	&-slider{
+		padding-top: 5rem;
+	}
+	&-link {
+		color: @icon-color;
+		border-bottom: 1px dotted @icon-color;
+		font-size: 1.4rem;
+		&:hover {
+			color: darken(@icon-color, 10%);
+		}
+	}
+	&-offer{
+		margin-top: 4rem;
+	}
+	img {
+
+		display: block;
+		margin: 0 auto;
+		max-width: 15rem;
+	}
+
+}
+
+/* Посмотрите как мы работаем */
+.tour {
+	position: relative;
+	background: @light url(../img/tour.jpg) center no-repeat ;
+	background-size: cover;
+	&-subtitle {
+		font-size: 1.4rem;
+	}
+}
+
+
+/* Дополнительные услуги */
+.upsell{
+	background: @upsell-bg;
+}
+
 
 	/* Оформление модальных окон */
 	.popup {

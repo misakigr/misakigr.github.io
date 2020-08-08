@@ -399,7 +399,7 @@ small {
   color: #ffffff;
   font-size: 2rem;
 }
-/* Мы развеем все опасения */
+/* Мы развеем все сомнения */
 .problems {
   position: relative;
 }
@@ -448,11 +448,53 @@ small {
 }
 .problems-list_bad ul li:before {
   background: url(../img/problems/bad.svg) center no-repeat;
-  background-size: 60%;
+  background-size: 55%;
+}
+.problems-list_good {
+  border-color: #46b814;
 }
 .problems-list_good ul li:before {
   background: url(../img/problems/good.svg) center no-repeat;
   background-size: 60%;
+}
+/* Материалы */
+.materials {
+  background: #f5f5f5;
+}
+.materials p {
+  margin-top: 3rem;
+}
+.materials-slider {
+  padding-top: 5rem;
+}
+.materials-link {
+  color: #46b814;
+  border-bottom: 1px dotted #46b814;
+  font-size: 1.4rem;
+}
+.materials-link:hover {
+  color: #348a0f;
+}
+.materials-offer {
+  margin-top: 4rem;
+}
+.materials img {
+  display: block;
+  margin: 0 auto;
+  max-width: 15rem;
+}
+/* Посмотрите как мы работаем */
+.tour {
+  position: relative;
+  background: #ffffff url(../img/tour.jpg) center no-repeat;
+  background-size: cover;
+}
+.tour-subtitle {
+  font-size: 1.4rem;
+}
+/* Дополнительные услуги */
+.upsell {
+  background: #286b0a;
 }
 /* Оформление модальных окон */
 .popup {
