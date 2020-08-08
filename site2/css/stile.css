@@ -356,6 +356,9 @@ small {
   margin-top: 5rem;
   font-size: 3rem;
 }
+.scheme .row h3 {
+  margin-top: 2rem;
+}
 .scheme .row p {
   font-size: 1.4rem;
   margin-bottom: 2rem;
