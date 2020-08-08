@@ -218,6 +218,8 @@ small {
   -webkit-box-shadow: 7px 12px 21px 0px rgba(0, 0, 0, 0.17);
           box-shadow: 7px 12px 21px 0px rgba(0, 0, 0, 0.17);
   text-align: center;
+  min-height: 57rem;
+  max-width: 35rem;
 }
 .price-block h4 {
   margin: 3rem 0;
