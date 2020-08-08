@@ -355,7 +355,7 @@ small {
   min-height: 10rem;
 }
 .scheme .section-header h2 {
-  margin-top: 5rem;
+  margin-top: 10rem;
   font-size: 3rem;
 }
 .scheme .row h3 {
@@ -491,10 +491,30 @@ small {
 }
 .tour-subtitle {
   font-size: 1.4rem;
+  margin-top: 2rem;
+}
+.tour h2 {
+  font-size: 3.5rem;
+  margin-top: -10rem;
 }
 /* Дополнительные услуги */
 .upsell {
   background: #286b0a;
+  text-align: center;
+}
+.upsell img {
+  width: 100%;
+  max-width: 30rem;
+  display: inline-block;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+.upsell .row p {
+  font-size: 1.6rem;
+  color: #ffffff;
+}
+.upsell .button {
+  margin-bottom: 3rem;
 }
 /* Оформление модальных окон */
 .popup {
