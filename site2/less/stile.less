@@ -6,6 +6,7 @@
 @bg-light: #f5f5f5;
 @light: #fff;
 @border-input: #dddddd;
+@problems_color: #e8e8e8;
 
 /* Basic setting */
 html {
@@ -309,8 +310,10 @@ margin-top: 1.5rem;
 	background-size: cover;
 	border-bottom: none;
 	text-align: center;
+		
 	&-prev-btn {
 		left: -4rem;
+
 	}
 	&-next-btn {
 		right: -4rem;
@@ -398,12 +401,114 @@ margin-top: 1.5rem;
 
 .scheme {
 		background: @light url(../img/scheme/cement.png) bottom right 15% no-repeat;
-	&-block {
-		min-height: 30rem;
-		h3 {
-			font-size: 2rem;
+	.section-header {
+		margin-bottom: 2rem;
+		min-height: 10rem;
+		h2 {
+			margin-top: 5rem;
+			font-size: 3rem;
+		}
+			}
+	.row {
+		p {
+			font-size: 1.4rem;
+			margin-bottom: 2rem;
 		}
 	}
+}
+
+/* Все на 100% включено */
+.all-inclusive {
+	background: @bg-light;
+	.media {
+		min-height: 10rem;
+		h4 {
+			padding: 0 2rem;
+			font-size: 1.6rem;
+	}
+	p {
+		padding: 0 2rem;
+		font-size: 1.1rem;
+	}
+	}
+	}
+.circle	{
+	display: inline-block;
+	background-color: @icon-color;
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	&-border {
+		display: inline-block;
+		width: 5rem;
+		height: 5rem;
+		padding: 0.3rem;
+		border: 2px solid @icon-color;
+		border-radius:50%;
+		text-align: center;
+		line-height: 4rem;
+		color: @light;
+		font-size: 2rem;
+	}	
+}
+
+/* Мы развеем все опасения */
+.problems {
+	position: relative;
+	&-women{
+		position: absolute;
+		width: 25rem;
+		bottom: 10rem;
+		left: 50%;
+		margin-left: -15rem;
+	}
+	&-list {
+		border: 4px solid;
+		padding: 2rem;
+		min-height: 34rem;
+		margin-bottom: 3rem;
+		h4{
+			font-size: 2.1rem;
+		}
+		ul {
+			list-style: none;
+			padding-left: 0;
+			padding-top: 2rem ;
+			li {
+				position: relative;
+				padding-left: 3.5rem;
+				font-size: 1.4rem;
+				&:before {
+			content:'';
+			position: absolute;
+			left: 0;
+			top: 50%;
+			transform: translateY(-50%);
+			width: 3rem;
+			height: 3rem;
+			
+		}
+				margin-bottom: 3rem;
+			}
+		}
+		&_bad {
+						border-color: @problems_color;
+			h4 {
+				opacity: 0.5;
+		}
+		ul li:before {
+			background: url(../img/problems/bad.svg) center no-repeat;
+			background-size: 60%;
+		}
+
+	}
+	&_good {
+		ul li:before {
+			background: url(../img/problems/good.svg) center no-repeat;
+			background-size: 60%;
+		}
+	}
+}
 }
 
 	/* Оформление модальных окон */
@@ -455,6 +560,11 @@ margin-top: 1.5rem;
 				margin-bottom: 3rem;
 			}
 		}
+		.problems{
+		&-list{
+			min-height: 40rem;
+		}
+	}
 	}
 
 @media (max-width: 991px) {
@@ -483,7 +593,14 @@ margin-top: 1.5rem;
 	.hand {
 		// display: none;
 	}
+	.problems{
+		&-list{
+			min-height: 50rem;
+		}
+	}
 } 
+
+
 @media (max-width: 767px) {
 	.main {
 		background-position: top right;
@@ -516,8 +633,22 @@ margin-top: 1.5rem;
 	.scheme {
 		background: none;
 		text-align: center;
-		&-block {
+		.section-header {
 			min-height: 20rem;
+			margin-bottom: -5rem;
+			
+		}
+		.row p {
+			margin-bottom: 5rem;
+		}
+	}
+	.problems{
+		&-women{
+			display: none;
+
+		}
+		&-list{
+			min-height: 30rem;
 		}
 	}
 }
