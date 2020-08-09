@@ -545,6 +545,21 @@ small {
 .contacts .main-form {
   margin-top: 2rem;
 }
+/* Подвал (Footer) */
+footer {
+  padding: 4rem 0;
+  text-align: center;
+}
+.footer-contacts {
+  padding-top: 1.5rem;
+  text-align: center;
+}
+.footer-contacts p {
+  margin: 0;
+}
+.footer-dev-logo {
+  text-align: right;
+}
 /* Оформление модальных окон */
 .popup {
   display: none;
