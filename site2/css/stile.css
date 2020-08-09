@@ -30,7 +30,8 @@ textarea:focus {
   /* Поле для ввода */
   /* Подписи к полям */
 }
-.form-input {
+.form-input,
+.form-textarea {
   display: block;
   margin: 2rem 0;
   width: 100%;
@@ -211,6 +212,7 @@ small {
 }
 .price-button {
   text-align: right;
+  font-size: 1.2rem;
 }
 .price-block {
   padding: 1rem 3rem 4rem;
@@ -517,6 +519,31 @@ small {
 }
 .upsell .button {
   margin-bottom: 3rem;
+  font-size: 1.2rem;
+}
+/* Контакты */
+.contacts {
+  background: #ffffff url(../img/contacts-bg.jpg) center no-repeat;
+  background-size: cover;
+}
+.contacts h2 {
+  font-size: 3.5rem;
+}
+.contacts p {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  font-size: 1.6rem;
+}
+.contacts-link {
+  display: inline-block;
+  color: #1a1820;
+  border-bottom: 1px dotted #1a1820;
+}
+.contacts-link:hover {
+  color: #020203;
+}
+.contacts .main-form {
+  margin-top: 2rem;
 }
 /* Оформление модальных окон */
 .popup {
@@ -638,5 +665,15 @@ small {
   }
   .problems-list {
     min-height: 30rem;
+  }
+  .tour-subtitle {
+    padding: 0;
+  }
+  .tour h2 {
+    padding: 0;
+  }
+  .contacts {
+    background: none;
+    text-align: center;
   }
 }

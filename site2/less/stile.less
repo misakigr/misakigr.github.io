@@ -39,7 +39,7 @@ button, input, a, textarea {
 
 .form {
 	/* Поле для ввода */
-&-input{
+&-input, &-textarea{
 		display: block;
 		margin: 2rem 0;
 		width: 100%;
@@ -259,6 +259,7 @@ margin-top: 1.5rem;
 		}
 		&-button {
 			text-align: right;
+			font-size: 1.2rem;
 		}
 		// Карточки с шаблонами
 		&-block {
@@ -584,10 +585,36 @@ margin-top: 1.5rem;
 			}
 			.button {
 				margin-bottom: 3rem;
+				font-size: 1.2rem;
 			}
 
 }
+			
+			/* Контакты */
+			.contacts {
+				background: @light url(../img/contacts-bg.jpg) center no-repeat;
+				background-size: cover;
+				h2 {
+					font-size: 3.5rem;
 
+									}
+				p {
+					margin-top: 2rem;
+					margin-bottom: 2rem;
+					font-size: 1.6rem;
+				}
+				&-link{
+					display: inline-block;
+					color: @text;
+					border-bottom: 1px dotted @text;
+					&:hover {
+						color: darken(@text, 10%);
+					}
+				}
+				.main-form {
+					margin-top: 2rem;
+				}
+			}
 
 	/* Оформление модальных окон */
 	.popup {
@@ -676,6 +703,7 @@ margin-top: 1.5rem;
 			min-height: 50rem;
 		}
 	}
+	
 } 
 
 
@@ -728,5 +756,18 @@ margin-top: 1.5rem;
 		&-list{
 			min-height: 30rem;
 		}
+		
+}
+.tour{
+			&-subtitle {
+				padding: 0;
+			}
+			h2 {
+				padding: 0;
+		}
+	}
+	.contacts {
+		background: none;
+		text-align: center;
 	}
 }
