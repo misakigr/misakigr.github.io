@@ -489,13 +489,15 @@ small {
   background: #ffffff url(../img/tour.jpg) center no-repeat;
   background-size: cover;
 }
-.tour-subtitle {
-  font-size: 1.4rem;
-  margin-top: 2rem;
-}
 .tour h2 {
+  padding: 0 0 0 6rem;
   font-size: 3.5rem;
   margin-top: -10rem;
+}
+.tour-subtitle {
+  padding: 0 0 0 6rem;
+  font-size: 1.4rem;
+  margin-top: 2rem;
 }
 /* Дополнительные услуги */
 .upsell {
