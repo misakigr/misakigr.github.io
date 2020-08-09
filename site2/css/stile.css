@@ -551,14 +551,18 @@ footer {
   text-align: center;
   font-size: 1.4rem;
 }
+.footer-logo {
+  margin: 2rem;
+}
 .footer-contacts {
-  padding-top: 1.5rem;
+  margin: 2rem 0;
   text-align: center;
 }
 .footer-contacts p {
   margin: 0;
 }
-.footer-dev {
+.footer-dev-logo {
+  margin-top: 1rem;
   text-align: right;
 }
 /* Оформление модальных окон */
