@@ -547,8 +547,9 @@ small {
 }
 /* Подвал (Footer) */
 footer {
-  padding: 4rem 0;
+  padding: 3rem 0;
   text-align: center;
+  font-size: 1.4rem;
 }
 .footer-contacts {
   padding-top: 1.5rem;
@@ -557,7 +558,7 @@ footer {
 .footer-contacts p {
   margin: 0;
 }
-.footer-dev-logo {
+.footer-dev {
   text-align: right;
 }
 /* Оформление модальных окон */
@@ -689,6 +690,10 @@ footer {
   }
   .contacts {
     background: none;
+    text-align: center;
+  }
+  .footer-dev-logo {
+    margin-top: 2rem;
     text-align: center;
   }
 }
