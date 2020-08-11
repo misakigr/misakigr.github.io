@@ -1,5 +1,10 @@
 /* colors */
 /* Basic setting */
+iframe {
+  width: 100% !important;
+  height: 400px;
+  border: none;
+}
 html {
   font-size: 10px;
 }
@@ -75,7 +80,7 @@ section {
 /* main */
 .main {
   padding: 3rem 0;
-  background: #ffffff url(../img/beschovnaya.jpg) center center;
+  background: #ffffff url(../img/feedback/feedback-bg.jpg) center no-repeat;
   /* Главная форма */
 }
 .main-content {
