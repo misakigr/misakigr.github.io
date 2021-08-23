@@ -1,0 +1,24 @@
+.field {
+		display: flex;
+		margin: 50px auto;
+		border: 1px solid #000;
+		width: 680px;
+		height: 680px;
+		flex-wrap: wrap;
+	}
+
+.excel {
+		width: 78px;
+		height: 78px;
+		border: 1px solid #000;
+		font-size: 50px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+}
+
+.current {
+			color: transparent;
+			background: url(horse.png) center no-repeat;
+			background-size: cover;
+}
