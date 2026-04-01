@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NoPass Pyodide</title>
+<title>NoPass Full Python</title>
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
 
 <style>
-body { font-family: Arial; text-align:center; background:#f4f6f7; }
+body { font-family: Arial; background:#f4f6f7; text-align:center; }
 .container { max-width:400px; margin:auto; background:white; padding:20px; border-radius:10px; }
 input, button { width:100%; padding:10px; margin:5px 0; }
 button { background:#27ae60; color:white; font-weight:bold; }
@@ -19,12 +19,20 @@ button { background:#27ae60; color:white; font-weight:bold; }
 <body>
 
 <div class="container">
-<h2>🔐 NoPass (Python в браузере)</h2>
+<h2>🔐 NoPass (Python 1:1)</h2>
+
+<div id="status">⏳ Загрузка Python...</div>
 
 <input id="salt" type="password" placeholder="Соль">
 <input id="login" placeholder="Логин">
 
-<input id="length" type="number" value="16">
+<label>Длина:</label>
+<input id="length" type="number" value="16" min="8" max="32">
+
+<label><input type="checkbox" id="digits" checked> Цифры</label>
+<label><input type="checkbox" id="upper" checked> A-Z</label>
+<label><input type="checkbox" id="lower" checked> a-z</label>
+<label><input type="checkbox" id="symbols" checked> !@#$</label>
 
 <button onclick="generate()">🚀 Сгенерировать</button>
 
@@ -32,50 +40,65 @@ button { background:#27ae60; color:white; font-weight:bold; }
 </div>
 
 <script>
-let pyodideReady = loadPyodide();
+let pyodide;
+let pyReady = init();
+
+async function init() {
+    pyodide = await loadPyodide();
+
+    // загружаем твой .py файл
+    const response = await fetch("NoPass_Deepseek_222.py");
+    const code = await response.text();
+
+    await pyodide.runPythonAsync(code);
+
+    document.getElementById("status").innerText = "✅ Готово";
+}
 
 async function generate() {
-    const pyodide = await pyodideReady;
+    await pyReady;
 
     const salt = document.getElementById("salt").value;
     const login = document.getElementById("login").value;
-    const length = document.getElementById("length").value;
+    const length = parseInt(document.getElementById("length").value);
+
+    const digits = document.getElementById("digits").checked;
+    const upper = document.getElementById("upper").checked;
+    const lower = document.getElementById("lower").checked;
+    const symbols = document.getElementById("symbols").checked;
 
     if (!salt || !login) {
         alert("Введите данные");
         return;
     }
 
-    const code = `
-import hashlib
-import string
+    try {
+        pyodide.globals.set("login_js", login);
+        pyodide.globals.set("salt_js", salt);
+        pyodide.globals.set("length_js", length);
+        pyodide.globals.set("digits_js", digits);
+        pyodide.globals.set("upper_js", upper);
+        pyodide.globals.set("lower_js", lower);
+        pyodide.globals.set("symbols_js", symbols);
 
-def generate(login, salt, length):
-    key = hashlib.pbkdf2_hmac(
-        'sha256',
-        login.encode(),
-        salt.encode(),
-        100000,
-        dklen=16
-    )
+        const result = await pyodide.runPythonAsync(`
+generate_from_web(
+    login_js,
+    salt_js,
+    length_js,
+    digits_js,
+    upper_js,
+    lower_js,
+    symbols_js
+)
+        `);
 
-    key_int = int.from_bytes(key, 'big')
-    key_str = str(key_int)
+        document.getElementById("result").innerText = result;
 
-    chars = string.ascii_letters + string.digits + "!@#$%^&*()-+"
-
-    password = ""
-    for i in range(int(${length})):
-        idx = int(key_str[i % len(key_str)]) % len(chars)
-        password += chars[idx]
-
-    return password
-
-generate("${login}", "${salt}", ${length})
-`;
-
-    const result = await pyodide.runPythonAsync(code);
-    document.getElementById("result").innerText = result;
+    } catch (err) {
+        console.error(err);
+        alert("Ошибка: " + err);
+    }
 }
 </script>
 
