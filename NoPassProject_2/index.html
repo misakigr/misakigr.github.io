@@ -5,36 +5,81 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NoPass Pyodide</title>
 
+<!-- Pyodide CDN -->
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
 
 <style>
-body { font-family: Arial; text-align:center; background:#f4f6f7; }
-.container { max-width:400px; margin:auto; background:white; padding:20px; border-radius:10px; }
-input, button { width:100%; padding:10px; margin:5px 0; }
-button { background:#27ae60; color:white; font-weight:bold; cursor:pointer; }
-.result { margin-top:15px; font-size:18px; word-break:break-all; }
-.details { font-size:14px; color:#555; margin-top:10px; }
+body {
+    font-family: Arial, sans-serif;
+    text-align:center;
+    background:#f4f6f7;
+    padding: 20px;
+}
+.container {
+    max-width: 450px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+input, button {
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    font-size:14px;
+}
+button {
+    background:#27ae60;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+.result {
+    margin-top:15px;
+    font-size:18px;
+    word-break:break-all;
+    background:#ecf0f1;
+    padding:10px;
+    border-radius:5px;
+}
+.settings {
+    display:flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top:10px;
+}
+.settings label {
+    display:flex;
+    align-items:center;
+    margin:5px 0;
+    flex:1 1 45%;
+}
+.settings input[type=checkbox] {
+    margin-right:5px;
+}
 </style>
 </head>
-<body>
 
+<body>
 <div class="container">
-<h2>🔐 NoPass (Python в браузере)</h2>
+<h2>🔐 NoPass Password Generator</h2>
 
 <input id="salt" type="password" placeholder="Соль">
 <input id="login" placeholder="Логин">
 
 <input id="length" type="number" value="16" min="8" max="32">
 
-<label><input type="checkbox" id="digits" checked> Цифры</label>
-<label><input type="checkbox" id="upper" checked> Заглавные</label>
-<label><input type="checkbox" id="lower" checked> Строчные</label>
-<label><input type="checkbox" id="symbols" checked> Символы</label>
+<div class="settings">
+    <label><input type="checkbox" id="digits" checked> Цифры (0-9)</label>
+    <label><input type="checkbox" id="uppercase" checked> Заглавные (A-Z)</label>
+    <label><input type="checkbox" id="lowercase" checked> Строчные (a-z)</label>
+    <label><input type="checkbox" id="symbols" checked> Спецсимволы (!@#$%)</label>
+</div>
 
 <button onclick="generate()">🚀 Сгенерировать</button>
 
-<div class="result" id="result"></div>
-<div class="details" id="details"></div>
+<div class="result" id="result">⏳ Загрузка Python...</div>
 </div>
 
 <script>
@@ -46,59 +91,67 @@ async function generate() {
     const salt = document.getElementById("salt").value;
     const login = document.getElementById("login").value;
     const length = parseInt(document.getElementById("length").value);
-    const digits = document.getElementById("digits").checked;
-    const upper = document.getElementById("upper").checked;
-    const lower = document.getElementById("lower").checked;
-    const symbols = document.getElementById("symbols").checked;
+    const useDigits = document.getElementById("digits").checked;
+    const useUpper = document.getElementById("uppercase").checked;
+    const useLower = document.getElementById("lowercase").checked;
+    const useSymbols = document.getElementById("symbols").checked;
 
-    if (!salt || !login) { alert("Введите данные"); return; }
+    if (!salt || !login) {
+        alert("Введите соль и логин!");
+        return;
+    }
+    if (!useDigits && !useUpper && !useLower && !useSymbols) {
+        alert("Выберите хотя бы один тип символов!");
+        return;
+    }
+    if (length < 8 || length > 32) {
+        alert("Длина пароля должна быть от 8 до 32!");
+        return;
+    }
 
     const code = `
-import hashlib
 import string
 
-def generate_password(login, salt, length, use_digits, use_upper, use_lower, use_symbols):
-    base = f"{login}:{salt}"
-    hash_hex = hashlib.sha256(base.encode()).hexdigest()
-    alphabet = ""
-    if use_digits: alphabet += string.digits
-    if use_upper: alphabet += string.ascii_uppercase
-    if use_lower: alphabet += string.ascii_lowercase
-    if use_symbols: alphabet += "!@#$%^&*()-_=+[]{};:,.<>?"
-    if not alphabet: raise ValueError("Выберите хотя бы один набор символов")
-    password = ""
+def generate_from_web(login, salt, length, use_digits, use_upper, use_lower, use_symbols):
+    # Генерация "ключа" детерминированного
+    key_int = sum([ord(c) for c in (login+salt)]) * 9999
+    key_str = str(key_int)
+
+    charsets = ''
+    if use_digits: charsets += string.digits
+    if use_upper: charsets += string.ascii_uppercase
+    if use_lower: charsets += string.ascii_lowercase
+    if use_symbols: charsets += '!@#$%^&*()-+'
+
+    password = ''
     for i in range(length):
-        idx = int(hash_hex[i % len(hash_hex)], 16) % len(alphabet)
-        password += alphabet[idx]
+        idx = int(key_str[i % len(key_str)]) % len(charsets)
+        password += charsets[idx]
     return password
 
-def analyze_strength(password):
-    score = 0
-    details = []
-    if len(password) >= 12: score += 1; details.append("Длина ≥12")
-    if any(c.isdigit() for c in password): score += 1; details.append("Есть цифры")
-    if any(c.islower() for c in password): score += 1; details.append("Есть строчные")
-    if any(c.isupper() for c in password): score += 1; details.append("Есть заглавные")
-    if any(c in "!@#$%^&*()-_=+[]{};:,.<>?" for c in password): score += 1; details.append("Есть символы")
-    if score <=2: strength="Слабый"
-    elif score <=4: strength="Средний"
-    else: strength="Сильный"
-    return strength, details
-
-pwd = generate_password("${login}", "${salt}", ${length}, ${digits}, ${upper}, ${lower}, ${symbols})
-strength, details = analyze_strength(pwd)
-pwd, strength, details
+generate_from_web(
+    "${login}",
+    "${salt}",
+    ${length},
+    ${useDigits},
+    ${useUpper},
+    ${useLower},
+    ${useSymbols}
+)
 `;
-
     try {
         const result = await pyodide.runPythonAsync(code);
-        document.getElementById("result").innerText = result[0];
-        document.getElementById("details").innerText = result[1] + ": " + result[2].join(", ");
-    } catch (e) {
-        alert("Ошибка Python: " + e);
+        document.getElementById("result").innerText = result;
+    } catch(e) {
+        document.getElementById("result").innerText = "❌ Ошибка генерации: " + e;
+        console.error(e);
     }
 }
-</script>
 
+// Меняем текст при полной загрузке Pyodide
+pyodideReady.then(() => {
+    document.getElementById("result").innerText = "✅ Python загружен! Введите данные и нажмите 'Сгенерировать'";
+});
+</script>
 </body>
 </html>
