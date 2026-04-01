@@ -5,59 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NoPass Pyodide</title>
 
-<!-- Pyodide CDN -->
+<!-- Pyodide -->
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    text-align:center;
-    background:#f4f6f7;
-    padding: 20px;
-}
-.container {
-    max-width: 450px;
-    margin:auto;
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,0.1);
-}
-input, button {
-    width:100%;
-    padding:10px;
-    margin:5px 0;
-    font-size:14px;
-}
-button {
-    background:#27ae60;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
-}
-.result {
-    margin-top:15px;
-    font-size:18px;
-    word-break:break-all;
-    background:#ecf0f1;
-    padding:10px;
-    border-radius:5px;
-}
-.settings {
-    display:flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    margin-top:10px;
-}
-.settings label {
-    display:flex;
-    align-items:center;
-    margin:5px 0;
-    flex:1 1 45%;
-}
-.settings input[type=checkbox] {
-    margin-right:5px;
-}
+body { font-family: Arial; text-align:center; background:#f4f6f7; }
+.container { max-width:400px; margin:auto; background:white; padding:20px; border-radius:10px; }
+input, button { width:100%; padding:10px; margin:5px 0; }
+button { background:#27ae60; color:white; font-weight:bold; border:none; border-radius:5px; cursor:pointer; }
+.result { margin-top:15px; font-size:18px; word-break:break-all; }
+.checkbox-group { display:flex; justify-content:space-between; margin:10px 0; }
+.checkbox-group label { display:flex; align-items:center; gap:5px; }
 </style>
 </head>
 
@@ -65,21 +23,21 @@ button {
 <div class="container">
 <h2>🔐 NoPass Password Generator</h2>
 
-<input id="salt" type="password" placeholder="Соль">
-<input id="login" placeholder="Логин">
-
+<input id="salt" type="password" placeholder="Соль (секретное слово)">
+<input id="login" placeholder="Логин (например, email)">
 <input id="length" type="number" value="16" min="8" max="32">
 
-<div class="settings">
-    <label><input type="checkbox" id="digits" checked> Цифры (0-9)</label>
-    <label><input type="checkbox" id="uppercase" checked> Заглавные (A-Z)</label>
-    <label><input type="checkbox" id="lowercase" checked> Строчные (a-z)</label>
-    <label><input type="checkbox" id="symbols" checked> Спецсимволы (!@#$%)</label>
+<div class="checkbox-group">
+  <label><input type="checkbox" id="digits" checked> Цифры 0-9</label>
+  <label><input type="checkbox" id="upper" checked> Заглавные A-Z</label>
+</div>
+<div class="checkbox-group">
+  <label><input type="checkbox" id="lower" checked> Строчные a-z</label>
+  <label><input type="checkbox" id="symbols" checked> Спецсимволы !@#$%</label>
 </div>
 
 <button onclick="generate()">🚀 Сгенерировать</button>
-
-<div class="result" id="result">⏳ Загрузка Python...</div>
+<div class="result" id="result"></div>
 </div>
 
 <script>
@@ -91,29 +49,27 @@ async function generate() {
     const salt = document.getElementById("salt").value;
     const login = document.getElementById("login").value;
     const length = parseInt(document.getElementById("length").value);
+
     const useDigits = document.getElementById("digits").checked;
-    const useUpper = document.getElementById("uppercase").checked;
-    const useLower = document.getElementById("lowercase").checked;
+    const useUpper = document.getElementById("upper").checked;
+    const useLower = document.getElementById("lower").checked;
     const useSymbols = document.getElementById("symbols").checked;
 
     if (!salt || !login) {
         alert("Введите соль и логин!");
         return;
     }
-    if (!useDigits && !useUpper && !useLower && !useSymbols) {
-        alert("Выберите хотя бы один тип символов!");
-        return;
-    }
+
     if (length < 8 || length > 32) {
-        alert("Длина пароля должна быть от 8 до 32!");
+        alert("Длина пароля должна быть от 8 до 32 символов");
         return;
     }
 
-    const code = `
+    try {
+        const code = `
 import string
 
 def generate_from_web(login, salt, length, use_digits, use_upper, use_lower, use_symbols):
-    # Генерация "ключа" детерминированного
     key_int = sum([ord(c) for c in (login+salt)]) * 9999
     key_str = str(key_int)
 
@@ -122,6 +78,9 @@ def generate_from_web(login, salt, length, use_digits, use_upper, use_lower, use
     if use_upper: charsets += string.ascii_uppercase
     if use_lower: charsets += string.ascii_lowercase
     if use_symbols: charsets += '!@#$%^&*()-+'
+
+    if not charsets:
+        charsets = string.ascii_letters + string.digits
 
     password = ''
     for i in range(length):
@@ -133,25 +92,19 @@ generate_from_web(
     "${login}",
     "${salt}",
     ${length},
-    ${useDigits},
-    ${useUpper},
-    ${useLower},
-    ${useSymbols}
+    ${useDigits ? "True" : "False"},
+    ${useUpper ? "True" : "False"},
+    ${useLower ? "True" : "False"},
+    ${useSymbols ? "True" : "False"}
 )
 `;
-    try {
+
         const result = await pyodide.runPythonAsync(code);
         document.getElementById("result").innerText = result;
-    } catch(e) {
-        document.getElementById("result").innerText = "❌ Ошибка генерации: " + e;
-        console.error(e);
+    } catch (err) {
+        document.getElementById("result").innerText = "Ошибка генерации: " + err;
     }
 }
-
-// Меняем текст при полной загрузке Pyodide
-pyodideReady.then(() => {
-    document.getElementById("result").innerText = "✅ Python загружен! Введите данные и нажмите 'Сгенерировать'";
-});
 </script>
 </body>
 </html>
