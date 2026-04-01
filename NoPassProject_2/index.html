@@ -114,14 +114,32 @@ let pyodide;
 let ready = init();
 
 async function init() {
-    pyodide = await loadPyodide();
+    try {
+        pyodide = await loadPyodide();
 
-    const response = await fetch("NoPass_Deepseek_222.py");
-    const code = await response.text();
+        console.log("Pyodide loaded");
 
-    await pyodide.runPythonAsync(code);
+        const response = await fetch("NoPass_Deepseek_222.py");
 
-    document.getElementById("status").innerText = "✅ Готово";
+        if (!response.ok) {
+            throw new Error("Файл .py не найден");
+        }
+
+        const code = await response.text();
+
+        console.log("Python file loaded");
+
+        await pyodide.runPythonAsync(code);
+
+        console.log("Python executed");
+
+        document.getElementById("status").innerText = "✅ Готово";
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById("status").innerText = "❌ Ошибка загрузки";
+        alert("Ошибка init: " + err);
+    }
 }
 
 async function generate() {
