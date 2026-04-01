@@ -3,200 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NoPass Web App</title>
+<title>NoPass Pyodide</title>
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
 
 <style>
-body {
-    font-family: Arial;
-    background: #f4f6f7;
-    padding: 20px;
-}
-
-.container {
-    max-width: 500px;
-    margin: auto;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-}
-
-h2 {
-    text-align: center;
-}
-
-input, button {
-    width: 100%;
-    padding: 10px;
-    margin: 6px 0;
-}
-
-button {
-    background: #27ae60;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.result {
-    margin-top: 15px;
-    padding: 10px;
-    background: #ecf0f1;
-    border-radius: 8px;
-    word-break: break-all;
-}
-
-.section {
-    margin-top: 15px;
-}
-
-.checkbox-group {
-    display: flex;
-    justify-content: space-between;
-}
-
-.strength {
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-.details {
-    font-size: 12px;
-    color: #555;
-}
+body { font-family: Arial; text-align:center; background:#f4f6f7; }
+.container { max-width:400px; margin:auto; background:white; padding:20px; border-radius:10px; }
+input, button { width:100%; padding:10px; margin:5px 0; }
+button { background:#27ae60; color:white; font-weight:bold; cursor:pointer; }
+.result { margin-top:15px; font-size:18px; word-break:break-all; }
+.details { font-size:14px; color:#555; margin-top:10px; }
 </style>
 </head>
-
 <body>
 
 <div class="container">
-<h2>🔐 NoPass Generator</h2>
+<h2>🔐 NoPass (Python в браузере)</h2>
 
-<div id="status">⏳ Загрузка Python...</div>
+<input id="salt" type="password" placeholder="Соль">
+<input id="login" placeholder="Логин">
 
-<div class="section">
-<input id="salt" type="password" placeholder="🧂 Соль (секрет)">
-<input id="login" placeholder="👤 Логин">
-</div>
-
-<div class="section">
-<label>📏 Длина пароля:</label>
 <input id="length" type="number" value="16" min="8" max="32">
-</div>
 
-<div class="section">
-<label>⚙️ Настройки:</label>
-<div class="checkbox-group">
-<label><input type="checkbox" id="digits" checked> 0-9</label>
-<label><input type="checkbox" id="upper" checked> A-Z</label>
-</div>
-<div class="checkbox-group">
-<label><input type="checkbox" id="lower" checked> a-z</label>
-<label><input type="checkbox" id="symbols" checked> !@#</label>
-</div>
-</div>
+<label><input type="checkbox" id="digits" checked> Цифры</label>
+<label><input type="checkbox" id="upper" checked> Заглавные</label>
+<label><input type="checkbox" id="lower" checked> Строчные</label>
+<label><input type="checkbox" id="symbols" checked> Символы</label>
 
-<button onclick="generate()">🚀 СГЕНЕРИРОВАТЬ</button>
+<button onclick="generate()">🚀 Сгенерировать</button>
 
-<div class="result" id="result" style="display:none;">
-<div id="password"></div>
-<button onclick="copyPassword()">📋 Копировать</button>
-
-<div class="strength" id="strength"></div>
+<div class="result" id="result"></div>
 <div class="details" id="details"></div>
 </div>
 
-</div>
-
 <script>
-let pyodide;
-let ready = init();
-
-async function init() {
-    try {
-        pyodide = await loadPyodide();
-
-        console.log("Pyodide loaded");
-
-        const response = await fetch("NoPass_Deepseek_222.py");
-
-        if (!response.ok) {
-            throw new Error("Файл .py не найден");
-        }
-
-        const code = await response.text();
-
-        console.log("Python file loaded");
-
-        await pyodide.runPythonAsync(code);
-
-        console.log("Python executed");
-
-        document.getElementById("status").innerText = "✅ Готово";
-
-    } catch (err) {
-        console.error(err);
-        document.getElementById("status").innerText = "❌ Ошибка загрузки";
-        alert("Ошибка init: " + err);
-    }
-}
+let pyodideReady = loadPyodide();
 
 async function generate() {
-    await ready;
+    const pyodide = await pyodideReady;
 
     const salt = document.getElementById("salt").value;
     const login = document.getElementById("login").value;
     const length = parseInt(document.getElementById("length").value);
-
     const digits = document.getElementById("digits").checked;
     const upper = document.getElementById("upper").checked;
     const lower = document.getElementById("lower").checked;
     const symbols = document.getElementById("symbols").checked;
 
-    if (!salt || !login) {
-        alert("Введите логин и соль");
-        return;
-    }
+    if (!salt || !login) { alert("Введите данные"); return; }
+
+    const code = `
+import hashlib
+import string
+
+def generate_password(login, salt, length, use_digits, use_upper, use_lower, use_symbols):
+    base = f"{login}:{salt}"
+    hash_hex = hashlib.sha256(base.encode()).hexdigest()
+    alphabet = ""
+    if use_digits: alphabet += string.digits
+    if use_upper: alphabet += string.ascii_uppercase
+    if use_lower: alphabet += string.ascii_lowercase
+    if use_symbols: alphabet += "!@#$%^&*()-_=+[]{};:,.<>?"
+    if not alphabet: raise ValueError("Выберите хотя бы один набор символов")
+    password = ""
+    for i in range(length):
+        idx = int(hash_hex[i % len(hash_hex)], 16) % len(alphabet)
+        password += alphabet[idx]
+    return password
+
+def analyze_strength(password):
+    score = 0
+    details = []
+    if len(password) >= 12: score += 1; details.append("Длина ≥12")
+    if any(c.isdigit() for c in password): score += 1; details.append("Есть цифры")
+    if any(c.islower() for c in password): score += 1; details.append("Есть строчные")
+    if any(c.isupper() for c in password): score += 1; details.append("Есть заглавные")
+    if any(c in "!@#$%^&*()-_=+[]{};:,.<>?" for c in password): score += 1; details.append("Есть символы")
+    if score <=2: strength="Слабый"
+    elif score <=4: strength="Средний"
+    else: strength="Сильный"
+    return strength, details
+
+pwd = generate_password("${login}", "${salt}", ${length}, ${digits}, ${upper}, ${lower}, ${symbols})
+strength, details = analyze_strength(pwd)
+pwd, strength, details
+`;
 
     try {
-        pyodide.globals.set("login_js", login);
-        pyodide.globals.set("salt_js", salt);
-        pyodide.globals.set("length_js", length);
-        pyodide.globals.set("digits_js", digits);
-        pyodide.globals.set("upper_js", upper);
-        pyodide.globals.set("lower_js", lower);
-        pyodide.globals.set("symbols_js", symbols);
-
-        const result = await pyodide.runPythonAsync(`
-generate_from_web(
-    login_js,
-    salt_js,
-    length_js,
-    digits_js,
-    upper_js,
-    lower_js,
-    symbols_js
-)
-        `);
-
-        const data = result.toJs();
-
-        document.getElementById("result").style.display = "block";
-        document.getElementById("password").innerText = data.password;
-        document.getElementById("strength").innerText = "Сложность: " + data.strength;
-        document.getElementById("details").innerText = data.details.join(", ");
-
-    } catch (err) {
-        console.error(err);
-        alert("Ошибка: " + err);
+        const result = await pyodide.runPythonAsync(code);
+        document.getElementById("result").innerText = result[0];
+        document.getElementById("details").innerText = result[1] + ": " + result[2].join(", ");
+    } catch (e) {
+        alert("Ошибка Python: " + e);
     }
-}
-
-function copyPassword() {
-    const text = document.getElementById("password").innerText;
-    navigator.clipboard.writeText(text);
-    alert("Пароль скопирован");
 }
 </script>
 
