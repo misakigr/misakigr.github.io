@@ -5,24 +5,21 @@
 import hashlib
 import string
 
-
 # -------------------------
 # Генерация пароля
 # -------------------------
 def generate_password(login, salt, length, use_digits, use_upper, use_lower, use_symbols):
-    
     if not login or not salt:
         raise ValueError("Пустой логин или соль")
 
-    # Базовая строка
+    # Создаем базу
     base = f"{login}:{salt}"
 
-    # Хэш
-    hash_bytes = hashlib.sha256(base.encode()).digest()
+    # Хэш (SHA256)
+    hash_hex = hashlib.sha256(base.encode()).hexdigest()
 
-    # Формируем алфавит
+    # Выбираем набор символов
     alphabet = ""
-
     if use_digits:
         alphabet += string.digits
     if use_upper:
@@ -35,17 +32,16 @@ def generate_password(login, salt, length, use_digits, use_upper, use_lower, use
     if not alphabet:
         raise ValueError("Выбери хотя бы один набор символов")
 
-    # Генерация
+    # Генерация пароля
     password = ""
     for i in range(length):
-        idx = hash_bytes[i % len(hash_bytes)] % len(alphabet)
+        idx = int(hash_hex[i % len(hash_hex)], 16) % len(alphabet)
         password += alphabet[idx]
 
     return password
 
-
 # -------------------------
-# Оценка сложности
+# Анализ сложности
 # -------------------------
 def analyze_strength(password):
     score = 0
@@ -81,12 +77,10 @@ def analyze_strength(password):
 
     return strength, details
 
-
 # -------------------------
-# ФУНКЦИЯ ДЛЯ WEB (ВАЖНО)
+# Функция для Web
 # -------------------------
 def generate_from_web(login, salt, length, digits, upper, lower, symbols):
-    
     password = generate_password(
         login,
         salt,
@@ -96,7 +90,6 @@ def generate_from_web(login, salt, length, digits, upper, lower, symbols):
         lower,
         symbols
     )
-
     strength, details = analyze_strength(password)
 
     return {
