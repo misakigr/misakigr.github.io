@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoPass Pyodide</title>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+
+<style>
+body { font-family: Arial; text-align:center; background:#f4f6f7; }
+.container { max-width:400px; margin:auto; background:white; padding:20px; border-radius:10px; }
+input, button { width:100%; padding:10px; margin:5px 0; }
+button { background:#27ae60; color:white; font-weight:bold; }
+.result { margin-top:15px; font-size:18px; word-break:break-all; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h2>🔐 NoPass (Python в браузере)</h2>
+
+<input id="salt" type="password" placeholder="Соль">
+<input id="login" placeholder="Логин">
+
+<input id="length" type="number" value="16">
+
+<button onclick="generate()">🚀 Сгенерировать</button>
+
+<div class="result" id="result"></div>
+</div>
+
+<script>
+let pyodideReady = loadPyodide();
+
+async function generate() {
+    const pyodide = await pyodideReady;
+
+    const salt = document.getElementById("salt").value;
+    const login = document.getElementById("login").value;
+    const length = document.getElementById("length").value;
+
+    if (!salt || !login) {
+        alert("Введите данные");
+        return;
+    }
+
+    const code = `
+import hashlib
+import string
+
+def generate(login, salt, length):
+    key = hashlib.pbkdf2_hmac(
+        'sha256',
+        login.encode(),
+        salt.encode(),
+        100000,
+        dklen=16
+    )
+
+    key_int = int.from_bytes(key, 'big')
+    key_str = str(key_int)
+
+    chars = string.ascii_letters + string.digits + "!@#$%^&*()-+"
+
+    password = ""
+    for i in range(int(${length})):
+        idx = int(key_str[i % len(key_str)]) % len(chars)
+        password += chars[idx]
+
+    return password
+
+generate("${login}", "${salt}", ${length})
+`;
+
+    const result = await pyodide.runPythonAsync(code);
+    document.getElementById("result").innerText = result;
+}
+</script>
+
+</body>
+</html>
