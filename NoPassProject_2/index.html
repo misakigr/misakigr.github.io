@@ -3,50 +3,119 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NoPass Full Python</title>
+<title>NoPass Web App</title>
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
 
 <style>
-body { font-family: Arial; background:#f4f6f7; text-align:center; }
-.container { max-width:400px; margin:auto; background:white; padding:20px; border-radius:10px; }
-input, button { width:100%; padding:10px; margin:5px 0; }
-button { background:#27ae60; color:white; font-weight:bold; }
-.result { margin-top:15px; font-size:18px; word-break:break-all; }
+body {
+    font-family: Arial;
+    background: #f4f6f7;
+    padding: 20px;
+}
+
+.container {
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+h2 {
+    text-align: center;
+}
+
+input, button {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+}
+
+button {
+    background: #27ae60;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.result {
+    margin-top: 15px;
+    padding: 10px;
+    background: #ecf0f1;
+    border-radius: 8px;
+    word-break: break-all;
+}
+
+.section {
+    margin-top: 15px;
+}
+
+.checkbox-group {
+    display: flex;
+    justify-content: space-between;
+}
+
+.strength {
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.details {
+    font-size: 12px;
+    color: #555;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-<h2>🔐 NoPass (Python 1:1)</h2>
+<h2>🔐 NoPass Generator</h2>
 
 <div id="status">⏳ Загрузка Python...</div>
 
-<input id="salt" type="password" placeholder="Соль">
-<input id="login" placeholder="Логин">
+<div class="section">
+<input id="salt" type="password" placeholder="🧂 Соль (секрет)">
+<input id="login" placeholder="👤 Логин">
+</div>
 
-<label>Длина:</label>
+<div class="section">
+<label>📏 Длина пароля:</label>
 <input id="length" type="number" value="16" min="8" max="32">
+</div>
 
-<label><input type="checkbox" id="digits" checked> Цифры</label>
+<div class="section">
+<label>⚙️ Настройки:</label>
+<div class="checkbox-group">
+<label><input type="checkbox" id="digits" checked> 0-9</label>
 <label><input type="checkbox" id="upper" checked> A-Z</label>
+</div>
+<div class="checkbox-group">
 <label><input type="checkbox" id="lower" checked> a-z</label>
-<label><input type="checkbox" id="symbols" checked> !@#$</label>
+<label><input type="checkbox" id="symbols" checked> !@#</label>
+</div>
+</div>
 
-<button onclick="generate()">🚀 Сгенерировать</button>
+<button onclick="generate()">🚀 СГЕНЕРИРОВАТЬ</button>
 
-<div class="result" id="result"></div>
+<div class="result" id="result" style="display:none;">
+<div id="password"></div>
+<button onclick="copyPassword()">📋 Копировать</button>
+
+<div class="strength" id="strength"></div>
+<div class="details" id="details"></div>
+</div>
+
 </div>
 
 <script>
 let pyodide;
-let pyReady = init();
+let ready = init();
 
 async function init() {
     pyodide = await loadPyodide();
 
-    // загружаем твой .py файл
     const response = await fetch("NoPass_Deepseek_222.py");
     const code = await response.text();
 
@@ -56,7 +125,7 @@ async function init() {
 }
 
 async function generate() {
-    await pyReady;
+    await ready;
 
     const salt = document.getElementById("salt").value;
     const login = document.getElementById("login").value;
@@ -68,7 +137,7 @@ async function generate() {
     const symbols = document.getElementById("symbols").checked;
 
     if (!salt || !login) {
-        alert("Введите данные");
+        alert("Введите логин и соль");
         return;
     }
 
@@ -93,12 +162,23 @@ generate_from_web(
 )
         `);
 
-        document.getElementById("result").innerText = result;
+        const data = result.toJs();
+
+        document.getElementById("result").style.display = "block";
+        document.getElementById("password").innerText = data.password;
+        document.getElementById("strength").innerText = "Сложность: " + data.strength;
+        document.getElementById("details").innerText = data.details.join(", ");
 
     } catch (err) {
         console.error(err);
         alert("Ошибка: " + err);
     }
+}
+
+function copyPassword() {
+    const text = document.getElementById("password").innerText;
+    navigator.clipboard.writeText(text);
+    alert("Пароль скопирован");
 }
 </script>
 
