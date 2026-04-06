@@ -724,6 +724,21 @@
 
         .footer a:hover { text-shadow: 0 0 8px var(--neon-blue); }
 
+        #matrixCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 9999;
+            display: none;
+            pointer-events: none;
+            background: #000;
+        }
+
+        #matrixCanvas.active {
+            display: block;
+            pointer-events: all;
+        }
+
         @media (max-width: 600px) {
             .container { padding: 25px 18px; }
             .header h1 { font-size: 20px; letter-spacing: 2px; }
@@ -736,6 +751,7 @@
 <body>
     <div class="stars" id="stars"></div>
     <div class="scanline"></div>
+    <canvas id="matrixCanvas"></canvas>
 
     <div class="container">
         <div class="corner-decor tl"></div>
@@ -1239,6 +1255,89 @@
             if (installBanner) installBanner.style.display = 'none';
             deferredPrompt = null;
         });
+
+        (function() {
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            let animationId = null;
+            let columns = 0;
+            let drops = [];
+            const fontSize = 16;
+            const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            let idleTimer = null;
+            const IDLE_TIMEOUT = 60000;
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                columns = Math.floor(canvas.width / fontSize);
+                drops = [];
+                for (let i = 0; i < columns; i++) {
+                    drops[i] = Math.random() * -100;
+                }
+            }
+
+            function drawMatrix() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#0F0';
+                ctx.font = fontSize + 'px monospace';
+
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    const x = i * fontSize;
+                    const y = drops[i] * fontSize;
+
+                    if (Math.random() > 0.98) {
+                        ctx.fillStyle = '#FFF';
+                    } else if (Math.random() > 0.9) {
+                        ctx.fillStyle = '#0F0';
+                    } else {
+                        ctx.fillStyle = 'rgba(0, 255, 0, ' + (0.3 + Math.random() * 0.7) + ')';
+                    }
+
+                    ctx.fillText(text, x, y);
+
+                    if (y > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+                animationId = requestAnimationFrame(drawMatrix);
+            }
+
+            function startMatrix() {
+                if (animationId) return;
+                canvas.classList.add('active');
+                resizeCanvas();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                drawMatrix();
+            }
+
+            function stopMatrix() {
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                canvas.classList.remove('active');
+            }
+
+            function resetIdleTimer() {
+                stopMatrix();
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(startMatrix, IDLE_TIMEOUT);
+            }
+
+            ['mousedown', 'mousemove', 'keydown', 'touchstart', 'scroll', 'click'].forEach(function(evt) {
+                document.addEventListener(evt, resetIdleTimer, { passive: true });
+            });
+
+            resetIdleTimer();
+            window.addEventListener('resize', function() {
+                if (animationId) resizeCanvas();
+            });
+        })();
     </script>
 </body>
 </html>
