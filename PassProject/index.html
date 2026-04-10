@@ -794,6 +794,31 @@
             .password-value { font-size: 18px; }
             .action-buttons { flex-direction: column; }
         }
+        
+        #offlineBanner {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #ff0044, #ff0044);
+            color: white;
+            text-align: center;
+            padding: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 10000;
+            display: none;
+            box-shadow: 0 0 20px rgba(255, 0, 68, 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.9; }
+            50% { opacity: 1; }
+            100% { opacity: 0.9; }
+        }
+        
+        #offlineBanner.show { display: block; }
     </style>
 </head>
 <body>
@@ -1299,7 +1324,47 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js', { scope: './' });
+                navigator.serviceWorker.register('./sw.js', { scope: './' })
+                .then(registration => {
+                    // Set up communication with service worker for offline detection
+                    const setupOfflineListener = () => {
+                        // Check initial offline status
+                        navigator.serviceWorker.controller.postMessage({
+                            type: 'OFFLINE_STATUS_REQUEST'
+                        });
+                        
+                        // Listen for offline status changes from service worker
+                        navigator.serviceWorker.addEventListener('message', event => {
+                            if (event.data && event.data.type === 'OFFLINE_STATUS_CHANGE') {
+                                const offlineBanner = document.getElementById('offlineBanner');
+                                if (event.data.offline) {
+                                    offlineBanner.classList.add('show');
+                                } else {
+                                    offlineBanner.classList.remove('show');
+                                }
+                            }
+                        });
+                        
+                        // Also listen for direct offline status responses
+                        navigator.serviceWorker.controller.postMessage({
+                            type: 'OFFLINE_STATUS_REQUEST'
+                        });
+                    };
+                    
+                    // Wait for service worker to be active
+                    if (registration.active) {
+                        setupOfflineListener();
+                    } else {
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'activated') {
+                                    setupOfflineListener();
+                                }
+                            });
+                        });
+                    }
+                });
             });
         }
 
