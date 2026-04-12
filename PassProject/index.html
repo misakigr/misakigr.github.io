@@ -724,33 +724,6 @@
 
         .footer a:hover { text-shadow: 0 0 8px var(--neon-blue); }
 
-        /* Make text behave like static image - disable selection, copying, etc */
-        * {
-            -webkit-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
-            user-select: none !important;
-            -webkit-touch-callout: none !important;
-            -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
-        }
-
-        /* Prevent text dragging */
-        * {
-            -webkit-user-drag: none !important;
-            user-drag: none !important;
-        }
-
-        /* Default cursor for all elements except interactive ones */
-        body, p, h1, h2, h3, h4, h5, h6, span, div, label {
-            cursor: default !important;
-        }
-
-        /* Keep pointer cursor for actually interactive elements */
-        .cyber-input, .generate-btn, .copy-btn, .action-btn, .install-banner-btn, 
-        .install-banner-close, .namespace-btn, .cyber-checkbox {
-            cursor: pointer !important;
-        }
-
         .namespace-toggle {
             display: flex;
             gap: 8px;
@@ -1372,49 +1345,22 @@
                             }
                         });
                         
-                    // Also listen for direct offline status responses
-                    navigator.serviceWorker.controller.postMessage({
-                        type: 'OFFLINE_STATUS_REQUEST'
-                    });
-                });
-            });
-        }
-
-        // Disable text selection, copying, highlighting, and right-click actions
-        // Make text behave like a static image
-        
-        // Prevent text selection
-        document.addEventListener('selectstart', (e) => e.preventDefault(), { passive: false });
-        
-        // Prevent right-click context menu
-        document.addEventListener('contextmenu', (e) => e.preventDefault(), { passive: false });
-        
-        // Prevent copying via keyboard shortcuts
-        document.addEventListener('copy', (e) => e.preventDefault(), { passive: false });
-        document.addEventListener('cut', (e) => e.preventDefault(), { passive: false });
-        
-        // Prevent dragging of text/images
-        document.addEventListener('dragstart', (e) => e.preventDefault(), { passive: false });
-        
-        // Prevent touch hold context menu on mobile
-        document.addEventListener('touchhold', (e) => e.preventDefault(), { passive: false });
-        
-        // Additional measure: remove ability to select via double/triple click
-        document.addEventListener('mousedown', (e) => {
-            // Only allow mousedown on actual interactive elements
-            const interactiveElements = ['INPUT', 'BUTTON', 'TEXTAREA', 'SELECT'];
-            if (!interactiveElements.includes(e.target.tagName) && 
-                !e.target.classList.contains('cyber-input') &&
-                !e.target.classList.contains('generate-btn') &&
-                !e.target.classList.contains('copy-btn') &&
-                !e.target.classList.contains('action-btn') &&
-                !e.target.classList.contains('install-banner-btn') &&
-                !e.target.classList.contains('install-banner-close') &&
-                !e.target.classList.contains('namespace-btn') &&
-                !e.target.classList.contains('cyber-checkbox')) {
-                e.preventDefault();
-            }
-        }, { passive: false });
+                        // Also listen for direct offline status responses
+                        navigator.serviceWorker.controller.postMessage({
+                            type: 'OFFLINE_STATUS_REQUEST'
+                        });
+                    };
+                    
+                    // Wait for service worker to be active
+                    if (registration.active) {
+                        setupOfflineListener();
+                    } else {
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'activated') {
+                                    setupOfflineListener();
+                                }
                             });
                         });
                     }
