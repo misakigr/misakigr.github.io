@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nopass-v1';
+const CACHE_NAME = 'nopass-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -27,9 +27,14 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
+        // Only cache successful responses
         if (response && response.status === 200) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        // If response is not OK (e.g., 404), throw to trigger catch
+        if (!response || response.status !== 200) {
+          throw new Error('Network response was not ok');
         }
         return response;
       })
