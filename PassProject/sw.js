@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nopass-v2';
+const CACHE_NAME = 'nopass-v1';
 const ASSETS = [
   './',
   './index.html',
