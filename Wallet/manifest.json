@@ -1,0 +1,25 @@
+{
+  "name": "Wallet Cards",
+  "short_name": "Wallet",
+  "description": "PWA-кошелёк для скидочных карт, штрихкодов и QR-кодов.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#232937",
+  "theme_color": "#272d3d",
+  "icons": [
+    {
+      "src": "./icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

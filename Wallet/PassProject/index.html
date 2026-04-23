@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NoPass">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0a1a">
+    <meta name="description" content="Детерминированный генератор паролей">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%230a0a1a'/><text x='256' y='340' font-size='320' font-family='monospace' font-weight='bold' text-anchor='middle' fill='%2300f0ff'>N</text></svg>">
+    <title>Генератор паролей</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-blue: #00f0ff;
+            --neon-purple: #b400ff;
+            --neon-pink: #ff00aa;
+            --neon-green: #00ff88;
+            --neon-orange: #ff6b00;
+            --neon-red: #ff0044;
+            --bg-dark: #0a0a1a;
+            --glass-bg: rgba(10, 10, 35, 0.85);
+            --glass-border: rgba(0, 240, 255, 0.5);
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0dd;
+            --text-dim: #8888aa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(180, 0, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(0, 240, 255, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(255, 0, 170, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px; height: 2px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            animation: twinkle var(--dur, 3s) ease-in-out infinite;
+            animation-delay: var(--delay, 0s);
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 240, 255, 0.008) 2px,
+                rgba(0, 240, 255, 0.008) 4px
+            );
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 580px;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 35px 30px;
+            box-shadow:
+                0 0 40px rgba(0, 240, 255, 0.12),
+                0 0 80px rgba(180, 0, 255, 0.08),
+                inset 0 0 40px rgba(0, 240, 255, 0.04);
+            animation: containerGlow 5s ease-in-out infinite alternate;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 0 40px rgba(0, 240, 255, 0.12), 0 0 80px rgba(180, 0, 255, 0.08), inset 0 0 40px rgba(0, 240, 255, 0.04); }
+            100% { box-shadow: 0 0 50px rgba(0, 240, 255, 0.2), 0 0 100px rgba(180, 0, 255, 0.12), inset 0 0 50px rgba(0, 240, 255, 0.06); }
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple), var(--neon-pink), var(--neon-blue));
+            background-size: 400% 400%;
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0.4;
+            animation: borderFlow 10s linear infinite;
+            filter: blur(10px);
+        }
+
+        @keyframes borderFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .corner-decor {
+            position: absolute;
+            width: 20px; height: 20px;
+            border-color: var(--neon-blue);
+            border-style: solid;
+            border-width: 0;
+            opacity: 0.6;
+        }
+
+        .corner-decor.tl { top: 8px; left: 8px; border-top-width: 2px; border-left-width: 2px; border-radius: 4px 0 0 0; }
+        .corner-decor.tr { top: 8px; right: 8px; border-top-width: 2px; border-right-width: 2px; border-radius: 0 4px 0 0; }
+        .corner-decor.bl { bottom: 8px; left: 8px; border-bottom-width: 2px; border-left-width: 2px; border-radius: 0 0 0 4px; }
+        .corner-decor.br { bottom: 8px; right: 8px; border-bottom-width: 2px; border-right-width: 2px; border-radius: 0 0 4px 0; }
+
+        .header { text-align: center; margin-bottom: 28px; }
+
+        .header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            letter-spacing: 3px;
+            animation: titlePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.5)); }
+            50% { filter: drop-shadow(0 0 16px rgba(0, 240, 255, 0.9)); }
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .header .tagline {
+            color: var(--text-dim);
+            font-size: 11px;
+            margin-top: 4px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .form-group { margin-bottom: 18px; }
+
+        .form-group label {
+            display: block;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 500;
+            color: var(--neon-blue);
+            margin-bottom: 8px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .cyber-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(10, 10, 35, 0.9);
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            border-radius: 8px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 15px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .cyber-input::placeholder {
+            color: var(--text-dim);
+            font-family: 'Exo 2', sans-serif;
+        }
+
+        .cyber-input:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3), inset 0 0 15px rgba(0, 240, 255, 0.05);
+            background: rgba(10, 10, 35, 0.9);
+        }
+
+        .hint {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 5px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .settings-box {
+            background: rgba(10, 10, 35, 0.8);
+            border: 1px solid rgba(180, 0, 255, 0.45);
+            border-radius: 12px;
+            padding: 18px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .settings-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-purple), transparent);
+        }
+
+        .settings-box h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            color: var(--neon-purple);
+            margin-bottom: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .cyber-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .cyber-checkbox input { display: none; }
+
+        .checkmark {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(0, 240, 255, 0.6);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            background: rgba(10, 10, 35, 0.8);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .cyber-checkbox:hover .checkmark {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+        }
+
+        .cyber-checkbox input:checked + .checkmark {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+        }
+
+        .cyber-checkbox input:checked + .checkmark::after {
+            content: '';
+            position: absolute;
+            top: 3px; left: 6px;
+            width: 5px; height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .cyber-checkbox .cb-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            transition: color 0.3s;
+        }
+
+        .cyber-checkbox:hover .cb-label { color: var(--text-primary); }
+
+        .length-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .length-control label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            color: var(--neon-blue);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 0;
+        }
+
+        .length-input {
+            width: 65px;
+            padding: 8px 10px;
+            background: rgba(10, 10, 35, 0.9);
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            border-radius: 6px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 15px;
+            color: var(--neon-green);
+            text-align: center;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .length-input:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+        }
+
+        .length-control span {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(180, 0, 255, 0.25));
+            color: var(--neon-blue);
+            border: 2px solid var(--neon-blue);
+            border-radius: 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
+
+        .generate-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .generate-btn:hover::before { left: 100%; }
+
+        .generate-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(180, 0, 255, 0.25));
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.4), 0 0 50px rgba(180, 0, 255, 0.2);
+            text-shadow: 0 0 10px var(--neon-blue);
+            transform: translateY(-2px);
+        }
+
+        .generate-btn:active { transform: translateY(0); }
+
+        .generate-btn:disabled {
+            background: rgba(85, 85, 128, 0.5);
+            border-color: var(--text-secondary);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .generate-btn:disabled::before { display: none; }
+
+        .info-text {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 15px;
+            line-height: 1.7;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .result-screen { display: none; }
+        .result-screen.active { display: block; }
+        .input-screen.hidden { display: none; }
+
+        .success-header {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-green);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        .password-display {
+            background: rgba(10, 10, 35, 0.95);
+            border: 1px solid rgba(0, 255, 136, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .password-display::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-green), transparent);
+        }
+
+        .password-display p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .password-value {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--neon-green);
+            word-break: break-all;
+            user-select: all;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .copy-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 240, 255, 0.1));
+            color: var(--neon-blue);
+            border: 2px solid rgba(0, 240, 255, 0.6);
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 18px;
+            text-transform: uppercase;
+        }
+
+        .copy-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 240, 255, 0.1));
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .analysis-box {
+            background: rgba(10, 10, 35, 0.8);
+            border: 1px solid rgba(180, 0, 255, 0.45);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 18px;
+        }
+
+        .analysis-box h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            color: var(--neon-purple);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .strength-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .strength-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .strength-value {
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .detail-item {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .stats-text {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 13px;
+            border: 1px solid;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .new-btn {
+            background: rgba(255, 107, 0, 0.2);
+            border-color: var(--neon-orange);
+            color: var(--neon-orange);
+        }
+
+        .new-btn:hover {
+            background: rgba(255, 107, 0, 0.2);
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
+            text-shadow: 0 0 8px var(--neon-orange);
+        }
+
+        .close-btn {
+            background: rgba(255, 0, 68, 0.2);
+            border-color: var(--neon-red);
+            color: var(--neon-red);
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 0, 68, 0.2);
+            box-shadow: 0 0 20px rgba(255, 0, 68, 0.3);
+            text-shadow: 0 0 8px var(--neon-red);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 240, 255, 0.15));
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            color: var(--neon-green);
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+            border: 1px solid rgba(0, 255, 136, 0.4);
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.3);
+        }
+
+        .toast.show { opacity: 1; }
+
+        .install-banner {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 2000;
+            padding: 12px 16px;
+            background: rgba(10, 10, 35, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0, 240, 255, 0.3);
+            box-shadow: 0 -5px 30px rgba(0, 240, 255, 0.15);
+        }
+
+        .install-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 580px;
+            margin: 0 auto;
+        }
+
+        .install-banner-content span {
+            flex: 1;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .install-banner-btn {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(180, 0, 255, 0.2));
+            border: 1px solid var(--neon-blue);
+            border-radius: 6px;
+            color: var(--neon-blue);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .install-banner-btn:hover {
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .install-banner-close {
+            width: 28px;
+            height: 28px;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            color: var(--text-dim);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .install-banner-close:hover {
+            border-color: var(--neon-red);
+            color: var(--neon-red);
+        }
+
+        .error-msg {
+            color: var(--neon-red);
+            font-size: 12px;
+            margin-top: 6px;
+            display: none;
+            font-family: 'Share Tech Mono', monospace;
+            text-shadow: 0 0 8px rgba(255, 0, 68, 0.4);
+        }
+
+        .error-msg.visible { display: block; }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 10px;
+            color: var(--text-dim);
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 1px;
+        }
+
+        .footer a {
+            color: var(--neon-blue);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .footer a:hover { text-shadow: 0 0 8px var(--neon-blue); }
+
+        .namespace-toggle {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .namespace-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(10, 10, 35, 0.5);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .namespace-btn:hover {
+            background: rgba(10, 10, 35, 0.7);
+            border-color: rgba(0, 240, 255, 0.4);
+            color: var(--text-primary);
+        }
+
+        .namespace-btn.active {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(180, 0, 255, 0.2));
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        }
+
+        .namespace-btn.active::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .namespace-btn.active:hover::before { left: 100%; }
+
+        #matrixCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 9999;
+            display: none;
+            pointer-events: none;
+            background: #000;
+        }
+
+        #matrixCanvas.active {
+            display: block;
+            pointer-events: all;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 25px 18px; }
+            .header h1 { font-size: 20px; letter-spacing: 2px; }
+            .checkbox-grid { grid-template-columns: 1fr; }
+            .password-value { font-size: 18px; }
+            .action-buttons { flex-direction: column; }
+        }
+        
+        #offlineBanner {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #ff0044, #ff0044);
+            color: white;
+            text-align: center;
+            padding: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 10000;
+            display: none;
+            box-shadow: 0 0 20px rgba(255, 0, 68, 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.9; }
+            50% { opacity: 1; }
+            100% { opacity: 0.9; }
+        }
+        
+        #offlineBanner.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <div class="scanline"></div>
+    <canvas id="matrixCanvas"></canvas>
+
+    <div class="container">
+        <div class="corner-decor tl"></div>
+        <div class="corner-decor tr"></div>
+        <div class="corner-decor bl"></div>
+        <div class="corner-decor br"></div>
+
+        <div class="input-screen" id="inputScreen">
+            <div class="header">
+                <h1>Seed-генератор</h1>
+                <p class="subtitle">Детерминированный генератор паролей</p>
+                
+            </div>
+
+            <div class="form-group">
+                <label for="salt">// Соль (секретное слово)</label>
+                <input type="password" id="salt" class="cyber-input" placeholder="Введите секретное слово">
+                <p class="hint">[ будет скрыто звёздочками ]</p>
+                <p class="error-msg" id="saltError">[Ошибка] Пожалуйста, введите соль</p>
+            </div>
+
+            <div class="form-group">
+                <label for="login">// Логин (например, email)</label>
+                <input type="text" id="login" class="cyber-input" placeholder="Введите логин">
+                <p class="error-msg" id="loginError">[Ошибка] Пожалуйста, введите логин</p>
+            </div>
+
+            <div class="form-group">
+                <label>// Неймспейс (префикс сайта)</label>
+                <div class="namespace-toggle">
+                    <button class="namespace-btn active" data-suffix="">Default</button>
+                    <button class="namespace-btn" data-suffix="_work">Work</button>
+                    <button class="namespace-btn" data-suffix="_v2">v2</button>
+                </div>
+                <p class="hint">Добавляет суффикс к логину для генерации разных паролей для одного аккаунта</p>
+            </div>
+
+            <div class="settings-box">
+                <h3>Настройки пароля</h3>
+                <div class="checkbox-grid">
+                    <label class="cyber-checkbox">
+                        <input type="checkbox" id="digits" checked>
+                        <span class="checkmark"></span>
+                        <span class="cb-label">Цифры (0-9)</span>
+                    </label>
+                    <label class="cyber-checkbox">
+                        <input type="checkbox" id="uppercase" checked>
+                        <span class="checkmark"></span>
+                        <span class="cb-label">Заглавные (A-Z)</span>
+                    </label>
+                    <label class="cyber-checkbox">
+                        <input type="checkbox" id="lowercase" checked>
+                        <span class="checkmark"></span>
+                        <span class="cb-label">Строчные (a-z)</span>
+                    </label>
+                    <label class="cyber-checkbox">
+                        <input type="checkbox" id="symbols" checked>
+                        <span class="checkmark"></span>
+                        <span class="cb-label">Спецсимволы (!@#$%)</span>
+                    </label>
+                </div>
+                <div class="length-control">
+                    <label>Длина:</label>
+                    <input type="number" id="length" class="length-input" min="8" max="32" value="16">
+                    <span>символов (8-32)</span>
+                </div>
+                <p class="error-msg" id="settingsError">[Ошибка] Выберите хотя бы один тип символов</p>
+                <p class="error-msg" id="lengthError">[Ошибка] Длина пароля должна быть от 8 до 32</p>
+            </div>
+
+            <button class="generate-btn" id="generateBtn" onclick="generatePassword()">Сгенерировать пароль</button>
+
+            <p class="info-text">
+                При одинаковых логине и соли всегда получается одинаковый пароль<br>                
+            </p>
+        </div>
+
+        <div class="result-screen" id="resultScreen">
+            <div class="success-header">Пароль успешно сгенерирован</div>
+
+            <div class="password-display">
+                <p>Ваш пароль</p>
+                <div class="password-value" id="passwordValue"></div>
+            </div>
+
+            <button class="copy-btn" onclick="copyToClipboard()">Копировать пароль</button>
+
+            <div class="analysis-box">
+                <h3>Анализ пароля</h3>
+                <div class="strength-row">
+                    <span class="strength-label">Сложность:</span>
+                    <span class="strength-value" id="strengthValue"></span>
+                </div>
+                <div class="details-grid" id="detailsGrid"></div>
+                <p class="stats-text" id="statsText"></p>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn new-btn" onclick="resetApp()">Новый пароль</button>
+                <button class="action-btn close-btn" onclick="closeApp()">Закрыть</button>
+            </div>
+
+            <p class="info-text">При тех же логине и соли пароль будет таким же</p>
+        </div>
+
+        <div class="footer">
+           — Санкт-Петербург 2026 —
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Пароль скопирован в буфер обмена</div>
+
+    <div class="install-banner" id="installBanner">
+        <div class="install-banner-content">
+            <span>Установить NoPass на устройство</span>
+            <button class="install-banner-btn" id="installBtn">Установить</button>
+            <button class="install-banner-close" onclick="document.getElementById('installBanner').style.display='none'">×</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 80; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.setProperty('--dur', (2 + Math.random() * 4) + 's');
+                star.style.setProperty('--delay', (Math.random() * 3) + 's');
+                if (Math.random() > 0.7) {
+                    star.style.background = '#b400ff';
+                } else if (Math.random() > 0.5) {
+                    star.style.background = '#ff00aa';
+                }
+                starsContainer.appendChild(star);
+            }
+        })();
+
+        const charsets = {
+            digits: '0123456789',
+            uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            lowercase: 'abcdefghijklmnopqrstuvwxyz',
+            symbols: '!@#$%^&*()-+'
+        };
+
+        async function pbkdf2(password, salt, iterations, keyLength) {
+            const enc = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey(
+                'raw',
+                enc.encode(password),
+                'PBKDF2',
+                false,
+                ['deriveBits']
+            );
+
+            const derivedBits = await crypto.subtle.deriveBits(
+                {
+                    name: 'PBKDF2',
+                    salt: enc.encode(salt),
+                    iterations: iterations,
+                    hash: 'SHA-256'
+                },
+                keyMaterial,
+                keyLength * 8
+            );
+
+            return new Uint8Array(derivedBits);
+        }
+
+        function getAvailableCharsets(config) {
+            const cs = [];
+            if (config.useDigits) cs.push(charsets.digits);
+            if (config.useUppercase) cs.push(charsets.uppercase);
+            if (config.useLowercase) cs.push(charsets.lowercase);
+            if (config.useSymbols) cs.push(charsets.symbols);
+
+            if (cs.length === 0) {
+                cs.push(charsets.digits, charsets.uppercase, charsets.lowercase, charsets.symbols);
+            }
+            return cs;
+        }
+
+        function mapToCharset(keyStr, config) {
+            const cs = getAvailableCharsets(config);
+            let keyDigits = [];
+            for (const ch of keyStr) {
+                if (ch >= '0' && ch <= '9') {
+                    keyDigits.push(parseInt(ch));
+                }
+            }
+
+            while (keyDigits.length < config.length) {
+                const hash = md5(keyStr);
+                for (const ch of hash) {
+                    if (ch >= '0' && ch <= '9') {
+                        keyDigits.push(parseInt(ch));
+                    } else if (ch >= 'a' && ch <= 'f') {
+                        keyDigits.push(parseInt(ch, 16));
+                    }
+                }
+                keyStr = hash;
+            }
+
+            let password = '';
+            for (let i = 0; i < config.length; i++) {
+                const charset = cs[i % cs.length];
+                const idx = keyDigits[i % keyDigits.length] % charset.length;
+                password += charset[idx];
+            }
+            return password;
+        }
+
+        function md5(str) {
+            function md5cycle(x, k) {
+                var a = x[0], b = x[1], c = x[2], d = x[3];
+                a = ff(a, b, c, d, k[0], 7, -680876936); d = ff(d, a, b, c, k[1], 12, -389564586);
+                c = ff(c, d, a, b, k[2], 17, 606105819); b = ff(b, c, d, a, k[3], 22, -1044525330);
+                a = ff(a, b, c, d, k[4], 7, -176418897); d = ff(d, a, b, c, k[5], 12, 1200080426);
+                c = ff(c, d, a, b, k[6], 17, -1473231341); b = ff(b, c, d, a, k[7], 22, -45705983);
+                a = ff(a, b, c, d, k[8], 7, 1770035416); d = ff(d, a, b, c, k[9], 12, -1958414417);
+                c = ff(c, d, a, b, k[10], 17, -42063); b = ff(b, c, d, a, k[11], 22, -1990404162);
+                a = ff(a, b, c, d, k[12], 7, 1804603682); d = ff(d, a, b, c, k[13], 12, -40341101);
+                c = ff(c, d, a, b, k[14], 17, -1502002290); b = ff(b, c, d, a, k[15], 22, 1236535329);
+                a = gg(a, b, c, d, k[1], 5, -165796510); d = gg(d, a, b, c, k[6], 9, -1069501632);
+                c = gg(c, d, a, b, k[11], 14, 643717713); b = gg(b, c, d, a, k[0], 20, -373897302);
+                a = gg(a, b, c, d, k[5], 5, -701558691); d = gg(d, a, b, c, k[10], 9, 38016083);
+                c = gg(c, d, a, b, k[15], 14, -660478335); b = gg(b, c, d, a, k[4], 20, -405537848);
+                a = gg(a, b, c, d, k[9], 5, 568446438); d = gg(d, a, b, c, k[14], 9, -1019803690);
+                c = gg(c, d, a, b, k[3], 14, -187363961); b = gg(b, c, d, a, k[8], 20, 1163531501);
+                a = gg(a, b, c, d, k[13], 5, -1444681467); d = gg(d, a, b, c, k[2], 9, -51403784);
+                c = gg(c, d, a, b, k[7], 14, 1735328473); b = gg(b, c, d, a, k[12], 20, -1926607734);
+                a = hh(a, b, c, d, k[5], 4, -378558); d = hh(d, a, b, c, k[8], 11, -2022574463);
+                c = hh(c, d, a, b, k[11], 16, 1839030562); b = hh(b, c, d, a, k[14], 23, -35309556);
+                a = hh(a, b, c, d, k[1], 4, -1530992060); d = hh(d, a, b, c, k[4], 11, 1272893353);
+                c = hh(c, d, a, b, k[7], 16, -155497632); b = hh(b, c, d, a, k[10], 23, -1094730640);
+                a = hh(a, b, c, d, k[13], 4, 681279174); d = hh(d, a, b, c, k[0], 11, -358537222);
+                c = hh(c, d, a, b, k[3], 16, -722521979); b = hh(b, c, d, a, k[6], 23, 76029189);
+                a = hh(a, b, c, d, k[9], 4, -640364487); d = hh(d, a, b, c, k[12], 11, -421815835);
+                c = hh(c, d, a, b, k[15], 16, 530742520); b = hh(b, c, d, a, k[2], 23, -995338651);
+                a = ii(a, b, c, d, k[0], 6, -198630844); d = ii(d, a, b, c, k[7], 10, 1126891415);
+                c = ii(c, d, a, b, k[14], 15, -1416354905); b = ii(b, c, d, a, k[5], 21, -57434055);
+                a = ii(a, b, c, d, k[12], 6, 1700485571); d = ii(d, a, b, c, k[3], 10, -1894986606);
+                c = ii(c, d, a, b, k[10], 15, -1051523); b = ii(b, c, d, a, k[1], 21, -2054922799);
+                a = ii(a, b, c, d, k[8], 6, 1873313359); d = ii(d, a, b, c, k[15], 10, -30611744);
+                c = ii(c, d, a, b, k[6], 15, -1560198380); b = ii(b, c, d, a, k[13], 21, 1309151649);
+                a = ii(a, b, c, d, k[4], 6, -145523070); d = ii(d, a, b, c, k[11], 10, -1120210379);
+                c = ii(c, d, a, b, k[2], 15, 718787259); b = ii(b, c, d, a, k[9], 21, -343485551);
+                x[0] = add32(a, x[0]); x[1] = add32(b, x[1]); x[2] = add32(c, x[2]); x[3] = add32(d, x[3]);
+            }
+            function cmn(q, a, b, x, s, t) { a = add32(add32(a, q), add32(x, t)); return add32((a << s) | (a >>> (32 - s)), b); }
+            function ff(a, b, c, d, x, s, t) { return cmn((b & c) | ((~b) & d), a, b, x, s, t); }
+            function gg(a, b, c, d, x, s, t) { return cmn((b & d) | (c & (~d)), a, b, x, s, t); }
+            function hh(a, b, c, d, x, s, t) { return cmn(b ^ c ^ d, a, b, x, s, t); }
+            function ii(a, b, c, d, x, s, t) { return cmn(c ^ (b | (~d)), a, b, x, s, t); }
+            function md51(s) {
+                var n = s.length, state = [1732584193, -271733879, -1732584194, 271733878], i;
+                for (i = 64; i <= s.length; i += 64) { md5cycle(state, md5blk(s.substring(i - 64, i))); }
+                s = s.substring(i - 64); var tail = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+                for (i = 0; i < s.length; i++) tail[i >> 2] |= s.charCodeAt(i) << ((i % 4) << 3);
+                tail[i >> 2] |= 0x80 << ((i % 4) << 3); if (i > 55) { md5cycle(state, tail); for (i = 0; i < 16; i++) tail[i] = 0; }
+                tail[14] = n * 8; md5cycle(state, tail); return state;
+            }
+            function md5blk(s) {
+                var md5blks = [], i;
+                for (i = 0; i < 64; i += 4) { md5blks[i >> 2] = s.charCodeAt(i) + (s.charCodeAt(i + 1) << 8) + (s.charCodeAt(i + 2) << 16) + (s.charCodeAt(i + 3) << 24); }
+                return md5blks;
+            }
+            var hex_chr = '0123456789abcdef'.split('');
+            function rhex(n) { var s = '', j = 0; for (; j < 4; j++) s += hex_chr[(n >> (j * 8 + 4)) & 0x0F] + hex_chr[(n >> (j * 8)) & 0x0F]; return s; }
+            function hex(x) { for (var i = 0; i < x.length; i++) x[i] = rhex(x[i]); return x.join(''); }
+            function add32(a, b) { return (a + b) & 0xFFFFFFFF; }
+            return hex(md51(str));
+        }
+
+        async function generateKey(login, salt, config) {
+            if (!login || !salt) {
+                throw new Error("Логин и соль не могут быть пустыми");
+            }
+            return await pbkdf2(login, salt, config.iterations, config.keyLength);
+        }
+
+        async function createPassword(login, salt, config) {
+            const key = await generateKey(login, salt, config);
+            const keyInt = BigInt('0x' + Array.from(key).map(b => b.toString(16).padStart(2, '0')).join(''));
+            const keyStr = keyInt.toString();
+            return mapToCharset(keyStr, config);
+        }
+
+        function checkPasswordStrength(password) {
+            let score = 0;
+            const details = [];
+
+            if (password.length >= 16) {
+                score += 2;
+                details.push("Отличная длина (16+)");
+            } else if (password.length >= 12) {
+                score += 1;
+                details.push("Хорошая длина (12-15)");
+            } else {
+                details.push("Минимальная длина (8-11)");
+            }
+
+            const hasLower = /[a-z]/.test(password);
+            const hasUpper = /[A-Z]/.test(password);
+            const hasDigit = /[0-9]/.test(password);
+            const hasSymbol = /[!@#$%^&*()\-+]/.test(password);
+
+            if (hasLower) { score++; details.push("Есть строчные буквы"); }
+            else { details.push("Нет строчных букв"); }
+
+            if (hasUpper) { score++; details.push("Есть заглавные буквы"); }
+            else { details.push("Нет заглавных букв"); }
+
+            if (hasDigit) { score++; details.push("Есть цифры"); }
+            else { details.push("Нет цифр"); }
+
+            if (hasSymbol) { score += 2; details.push("Есть спецсимволы"); }
+            else { details.push("Нет спецсимволов"); }
+
+            const uniqueRatio = new Set(password).size / password.length;
+            if (uniqueRatio < 0.7) {
+                details.push("Много повторений");
+            }
+
+            let strengthText, strengthColor;
+            if (score >= 6) {
+                strengthText = "ОЧЕНЬ СИЛЬНЫЙ";
+                strengthColor = "#00ff88";
+            } else if (score >= 5) {
+                strengthText = "СИЛЬНЫЙ";
+                strengthColor = "#00f0ff";
+            } else if (score >= 4) {
+                strengthText = "ХОРОШИЙ";
+                strengthColor = "#ff6b00";
+            } else if (score >= 3) {
+                strengthText = "СРЕДНИЙ";
+                strengthColor = "#e67e22";
+            } else {
+                strengthText = "СЛАБЫЙ";
+                strengthColor = "#ff0044";
+            }
+
+            return { strengthText, strengthColor, details };
+        }
+
+        async function generatePassword() {
+            const salt = document.getElementById('salt').value.trim();
+            const login = document.getElementById('login').value.trim();
+            const length = parseInt(document.getElementById('length').value);
+            const useDigits = document.getElementById('digits').checked;
+            const useUppercase = document.getElementById('uppercase').checked;
+            const useLowercase = document.getElementById('lowercase').checked;
+            const useSymbols = document.getElementById('symbols').checked;
+            
+            // Get active namespace suffix
+            const activeBtn = document.querySelector('.namespace-btn.active');
+            const namespaceSuffix = activeBtn ? activeBtn.dataset.suffix : '';
+            const namespacedLogin = login + namespaceSuffix;
+
+            let hasError = false;
+
+            document.getElementById('saltError').classList.remove('visible');
+            document.getElementById('loginError').classList.remove('visible');
+            document.getElementById('settingsError').classList.remove('visible');
+            document.getElementById('lengthError').classList.remove('visible');
+
+            if (!salt) {
+                document.getElementById('saltError').classList.add('visible');
+                hasError = true;
+            }
+            if (!login) {
+                document.getElementById('loginError').classList.add('visible');
+                hasError = true;
+            }
+            if (!useDigits && !useUppercase && !useLowercase && !useSymbols) {
+                document.getElementById('settingsError').classList.add('visible');
+                hasError = true;
+            }
+            if (length < 8 || length > 32 || isNaN(length)) {
+                document.getElementById('lengthError').classList.add('visible');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.textContent = 'Генерация...';
+
+            try {
+                const config = {
+                    length,
+                    useDigits,
+                    useUppercase,
+                    useLowercase,
+                    useSymbols,
+                    iterations: 100000,
+                    keyLength: 16
+                };
+
+                const password = await createPassword(namespacedLogin, salt, config);
+                showResult(password);
+            } catch (e) {
+                alert('Не удалось сгенерировать пароль:\n' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Сгенерировать пароль';
+            }
+        }
+
+        function showResult(password) {
+            document.getElementById('inputScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('active');
+
+            document.getElementById('passwordValue').textContent = password;
+
+            const { strengthText, strengthColor, details } = checkPasswordStrength(password);
+            const strengthEl = document.getElementById('strengthValue');
+            strengthEl.textContent = strengthText;
+            strengthEl.style.color = strengthColor;
+            strengthEl.style.textShadow = '0 0 10px ' + strengthColor;
+
+            const detailsGrid = document.getElementById('detailsGrid');
+            detailsGrid.innerHTML = '';
+            for (const detail of details) {
+                const div = document.createElement('div');
+                div.className = 'detail-item';
+                div.textContent = detail;
+                detailsGrid.appendChild(div);
+            }
+
+            const digitCount = (password.match(/[0-9]/g) || []).length;
+            const upperCount = (password.match(/[A-Z]/g) || []).length;
+            const lowerCount = (password.match(/[a-z]/g) || []).length;
+            const symbolCount = (password.match(/[!@#$%^&*()\-+]/g) || []).length;
+            const totalChars = password.length;
+            const uniqueChars = new Set(password).size;
+
+            document.getElementById('statsText').textContent =
+                'Длина: ' + totalChars + ' | Цифр: ' + digitCount + ' | Заглавных: ' + upperCount + ' | Строчных: ' + lowerCount + ' | Спецсимволов: ' + symbolCount + ' | Уникальных: ' + uniqueChars;
+        }
+
+        function copyToClipboard() {
+            const password = document.getElementById('passwordValue').textContent;
+            navigator.clipboard.writeText(password).then(() => {
+                showToast();
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = password;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast();
+            });
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function resetApp() {
+            document.getElementById('inputScreen').classList.remove('hidden');
+            document.getElementById('resultScreen').classList.remove('active');
+            document.getElementById('salt').value = '';
+            document.getElementById('login').value = '';
+            document.getElementById('salt').focus();
+        }
+
+        function closeApp() {
+            document.getElementById('inputScreen').classList.remove('hidden');
+            document.getElementById('resultScreen').classList.remove('active');
+        }
+
+        document.getElementById('salt').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('login').focus();
+        });
+
+        document.getElementById('login').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') generatePassword();
+        });
+
+        // Namespace button event listeners
+        document.querySelectorAll('.namespace-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.namespace-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // Add active class to clicked button
+                button.classList.add('active');
+            });
+        });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js', { scope: './' })
+                .then(registration => {
+                    // Set up communication with service worker for offline detection
+                    const setupOfflineListener = () => {
+                        // Check initial offline status
+                        navigator.serviceWorker.controller.postMessage({
+                            type: 'OFFLINE_STATUS_REQUEST'
+                        });
+                        
+                        // Listen for offline status changes from service worker
+                        navigator.serviceWorker.addEventListener('message', event => {
+                            if (event.data && event.data.type === 'OFFLINE_STATUS_CHANGE') {
+                                const offlineBanner = document.getElementById('offlineBanner');
+                                if (event.data.offline) {
+                                    offlineBanner.classList.add('show');
+                                } else {
+                                    offlineBanner.classList.remove('show');
+                                }
+                            }
+                        });
+                        
+                        // Also listen for direct offline status responses
+                        navigator.serviceWorker.controller.postMessage({
+                            type: 'OFFLINE_STATUS_REQUEST'
+                        });
+                    };
+                    
+                    // Wait for service worker to be active
+                    if (registration.active) {
+                        setupOfflineListener();
+                    } else {
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'activated') {
+                                    setupOfflineListener();
+                                }
+                            });
+                        });
+                    }
+                });
+            });
+        }
+
+        let deferredPrompt;
+        const installBanner = document.getElementById('installBanner');
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (installBanner) installBanner.style.display = 'flex';
+        });
+
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                const result = await deferredPrompt.userChoice;
+                if (result.outcome === 'accepted') {
+                    if (installBanner) installBanner.style.display = 'none';
+                }
+                deferredPrompt = null;
+            });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            if (installBanner) installBanner.style.display = 'none';
+            deferredPrompt = null;
+        });
+
+        (function() {
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            let animationId = null;
+            let columns = 0;
+            let drops = [];
+            const fontSize = 16;
+            const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            let idleTimer = null;
+            const IDLE_TIMEOUT = 30000;
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                columns = Math.floor(canvas.width / fontSize);
+                drops = [];
+                for (let i = 0; i < columns; i++) {
+                    drops[i] = Math.random() * -100;
+                }
+            }
+
+            function drawMatrix() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#0F0';
+                ctx.font = fontSize + 'px monospace';
+
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    const x = i * fontSize;
+                    const y = drops[i] * fontSize;
+
+                    if (Math.random() > 0.98) {
+                        ctx.fillStyle = '#FFF';
+                    } else if (Math.random() > 0.9) {
+                        ctx.fillStyle = '#0F0';
+                    } else {
+                        ctx.fillStyle = 'rgba(0, 255, 0, ' + (0.3 + Math.random() * 0.7) + ')';
+                    }
+
+                    ctx.fillText(text, x, y);
+
+                    if (y > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+                animationId = requestAnimationFrame(drawMatrix);
+            }
+
+            function startMatrix() {
+                if (animationId) return;
+                canvas.classList.add('active');
+                resizeCanvas();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                drawMatrix();
+            }
+
+            function stopMatrix() {
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                canvas.classList.remove('active');
+            }
+
+            function resetIdleTimer() {
+                stopMatrix();
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(startMatrix, IDLE_TIMEOUT);
+            }
+
+            ['mousedown', 'mousemove', 'keydown', 'touchstart', 'scroll', 'click'].forEach(function(evt) {
+                document.addEventListener(evt, resetIdleTimer, { passive: true });
+            });
+
+            resetIdleTimer();
+            window.addEventListener('resize', function() {
+                if (animationId) resizeCanvas();
+            });
+        })();
+    </script>
+</body>
+</html>
