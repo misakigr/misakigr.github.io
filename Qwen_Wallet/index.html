@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#272d3d">
+    <meta name="description" content="Wallet PWA для хранения скидочных карт, штрихкодов и QR-кодов локально на устройстве.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Wallet">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icons/icon-192.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <title>Wallet Cards</title>
+    <style>
+        :root {
+            --bg: #232937;
+            --bg-alt: #2e3546;
+            --panel: rgba(58, 65, 85, 0.96);
+            --panel-soft: rgba(69, 77, 101, 0.7);
+            --panel-strong: #3b4256;
+            --line: rgba(255, 255, 255, 0.08);
+            --text: #f7f8fb;
+            --muted: #adb2c2;
+            --dim: #7d8498;
+            --accent: #2695ff;
+            --accent-soft: rgba(38, 149, 255, 0.15);
+            --danger: #ff5959;
+            --success: #3dd598;
+            --warning: #ffbe3d;
+            --shadow: 0 18px 48px rgba(8, 13, 24, 0.28);
+            --radius-xl: 34px;
+            --radius-lg: 28px;
+            --radius-md: 20px;
+            --radius-sm: 16px;
+            --nav-height: 92px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            background:
+                radial-gradient(circle at top left, rgba(63, 102, 168, 0.23), transparent 35%),
+                radial-gradient(circle at top right, rgba(250, 197, 87, 0.12), transparent 32%),
+                linear-gradient(180deg, #252b39 0%, #1f2432 100%);
+            color: var(--text);
+            font-family: "Manrope", "Segoe UI", sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            padding: 0;
+        }
+
+        button, input, textarea, select {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            background: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .app-shell {
+            width: 100%;
+            max-width: 540px;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
+        }
+
+        .glow {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 88% 15%, rgba(247, 80, 98, 0.12), transparent 20%),
+                radial-gradient(circle at 18% 34%, rgba(38, 149, 255, 0.09), transparent 26%);
+            opacity: 0.95;
+        }
+
+        .statusbar {
+            padding: calc(18px + env(safe-area-inset-top, 0px)) 28px 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .statusbar small {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .battery {
+            background: #ffcb35;
+            color: #1e2230;
+            border-radius: 12px;
+            padding: 4px 8px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .page {
+            display: none;
+            padding: 8px 20px 0;
+            animation: pageIn 260ms ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes pageIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .screen-card {
+            background: linear-gradient(180deg, rgba(50, 57, 75, 0.96), rgba(43, 49, 66, 0.96));
+            border: 1px solid var(--line);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow);
+        }
+
+        .screen-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 4px 22px;
+        }
+
+        .screen-header.center {
+            justify-content: center;
+            position: relative;
+        }
+
+        .screen-title {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            text-align: center;
+            flex: 1;
+        }
+
+        .icon-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            background: rgba(76, 84, 108, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .search-wrap {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .search-wrap svg {
+            position: absolute;
+            left: 22px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dim);
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(70, 77, 99, 0.75);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 28px;
+            padding: 22px 22px 22px 68px;
+            font-size: 24px;
+            letter-spacing: -0.03em;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: var(--dim);
+        }
+
+        .hero-row {
+            display: grid;
+            grid-template-columns: 156px 1fr;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .quick-tile {
+            min-height: 152px;
+            padding: 18px 16px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: linear-gradient(180deg, rgba(60, 68, 90, 0.96), rgba(50, 57, 75, 0.98));
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text);
+        }
+
+        .quick-tile strong {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.05;
+        }
+
+        .quick-tile .mini {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .promo-panel {
+            position: relative;
+            padding: 26px 26px 30px;
+            overflow: hidden;
+        }
+
+        .promo-panel::after {
+            content: "";
+            position: absolute;
+            right: -40px;
+            bottom: -40px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at center, rgba(125, 75, 255, 0.9), rgba(125, 75, 255, 0) 62%);
+            filter: blur(10px);
+            opacity: 0.9;
+        }
+
+        .promo-panel::before {
+            content: "%";
+            position: absolute;
+            right: 28px;
+            bottom: 8px;
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 142px;
+            line-height: 1;
+            color: rgba(255, 255, 255, 0.2);
+            z-index: 1;
+        }
+
+        .promo-panel h3 {
+            margin: 0 0 14px;
+            font-size: 22px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .promo-panel p {
+            margin: 0 0 22px;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.4;
+            max-width: 280px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .pill-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 54px;
+            padding: 0 24px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+        }
+
+        .section {
+            margin-bottom: 34px;
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-head h2 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: -0.04em;
+        }
+
+        .section-head small {
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .frequent-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .card-mini {
+            aspect-ratio: 1.25 / 1;
+            border-radius: 22px;
+            padding: 14px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: #fff;
+            box-shadow: 0 18px 24px rgba(10, 12, 20, 0.18);
+        }
+
+        .card-mini::before,
+        .wallet-card::before,
+        .detail-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.22), transparent 24%),
+                radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.18), transparent 28%),
+                radial-gradient(circle at 70% 90%, rgba(255, 255, 255, 0.14), transparent 20%);
+            mix-blend-mode: screen;
+            opacity: 0.65;
+        }
+
+        .brand-mark,
+        .brand-mini {
+            position: relative;
+            z-index: 1;
+            font-family: "Space Grotesk", sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+        }
+
+        .brand-mini {
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .card-mini span:last-child {
+            position: relative;
+            z-index: 1;
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
+        .wallet-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .wallet-card {
+            aspect-ratio: 0.94 / 1;
+            position: relative;
+            overflow: hidden;
+            border-radius: 28px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: white;
+            text-align: left;
+            box-shadow: 0 18px 28px rgba(12, 17, 28, 0.22);
+        }
+
+        .wallet-card .brand-mark {
+            font-size: 24px;
+            max-width: 80%;
+        }
+
+        .wallet-card .card-bottom {
+            position: relative;
+            z-index: 1;
+        }
+
+        .wallet-card .caption {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .wallet-card .number {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            margin-top: 4px;
+        }
+
+        .empty-state {
+            background: rgba(66, 74, 95, 0.8);
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 26px;
+            padding: 28px 22px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .catalog-grid,
+        .benefits-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .catalog-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .benefits-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .catalog-item,
+        .benefit-item {
+            position: relative;
+            overflow: hidden;
+            min-height: 168px;
+            border-radius: 26px;
+            padding: 18px;
+            text-align: left;
+            color: white;
+            background: linear-gradient(180deg, rgba(70, 77, 101, 0.95), rgba(50, 57, 75, 0.95));
+        }
+
+        .catalog-item h3,
+        .benefit-item h3 {
+            margin: 0 0 10px;
+            font-size: 22px;
+        }
+
+        .catalog-item p,
+        .benefit-item p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.35;
+        }
+
+        .more-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .row-button {
+            width: 100%;
+            background: rgba(62, 70, 92, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 20px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+        }
+
+        .row-button strong {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .row-button span {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-chip {
+            border-radius: 22px;
+            background: rgba(60, 68, 90, 0.84);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-chip strong {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .stat-chip span {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 0;
+            width: 100%;
+            max-width: 540px;
+            padding: 12px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+            background: rgba(53, 59, 79, 0.98);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(18px);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            z-index: 25;
+        }
+
+        .nav-item {
+            min-height: 66px;
+            border-radius: 20px;
+            color: var(--dim);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-item.active::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background: rgba(38, 149, 255, 0.09);
+        }
+
+        .nav-item span,
+        .nav-item svg {
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-badge {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            z-index: 2;
+            background: #f24b61;
+            color: white;
+            min-width: 28px;
+            height: 28px;
+            padding: 0 8px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .floating-add {
+            position: fixed;
+            right: calc(18px + env(safe-area-inset-right, 0px));
+            bottom: calc(var(--nav-height) + 18px + env(safe-area-inset-bottom, 0px));
+            width: 72px;
+            height: 72px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #2a9bff, #1a6dff);
+            color: white;
+            box-shadow: 0 18px 34px rgba(20, 95, 230, 0.42);
+            z-index: 30;
+        }
+
+        .sheet-backdrop,
+        .detail-overlay,
+        .scanner-sheet,
+        .toast,
+        .banner {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 540px;
+            z-index: 40;
+        }
+
+        .sheet-backdrop,
+        .detail-overlay,
+        .scanner-sheet {
+            display: none;
+        }
+
+        .sheet-backdrop.visible,
+        .detail-overlay.visible,
+        .scanner-sheet.visible {
+            display: block;
+        }
+
+        .sheet-backdrop {
+            top: 0;
+            bottom: 0;
+            background: rgba(10, 14, 20, 0.48);
+            backdrop-filter: blur(10px);
+        }
+
+        .sheet {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 0;
+            width: 100%;
+            max-width: 540px;
+            background: linear-gradient(180deg, rgba(54, 61, 82, 0.98), rgba(37, 43, 59, 0.99));
+            border-radius: 34px 34px 0 0;
+            box-shadow: 0 -18px 40px rgba(7, 10, 18, 0.38);
+            padding: 16px 20px calc(26px + env(safe-area-inset-bottom, 0px));
+            z-index: 45;
+            display: none;
+            max-height: 88vh;
+            overflow: auto;
+        }
+
+        .sheet.visible {
+            display: block;
+        }
+
+        .sheet-grip {
+            width: 72px;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+            margin: 0 auto 18px;
+        }
+
+        .sheet-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .sheet-head h3 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: -0.04em;
+        }
+
+        .sheet-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow: auto;
+        }
+
+        .sheet-tab {
+            flex: 1;
+            min-width: 110px;
+            min-height: 48px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .sheet-tab.active {
+            color: white;
+            background: rgba(38, 149, 255, 0.18);
+            border: 1px solid rgba(38, 149, 255, 0.28);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+        }
+
+        .field label {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .field input,
+        .field textarea,
+        .field select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: white;
+            border-radius: 18px;
+            padding: 16px 18px;
+            outline: none;
+        }
+
+        .field textarea {
+            min-height: 96px;
+            resize: vertical;
+        }
+
+        .field-inline {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .toggle {
+            min-height: 56px;
+            border-radius: 18px;
+            padding: 0 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .toggle input {
+            width: 24px;
+            height: 24px;
+        }
+
+        .submit-btn,
+        .secondary-btn,
+        .danger-btn {
+            width: 100%;
+            min-height: 58px;
+            border-radius: 22px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #2a9bff, #196dff);
+            color: white;
+            box-shadow: 0 18px 36px rgba(28, 107, 255, 0.28);
+        }
+
+        .secondary-btn {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .danger-btn {
+            background: rgba(255, 89, 89, 0.12);
+            color: var(--danger);
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .import-note {
+            margin-top: 10px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .detail-overlay {
+            top: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(56, 74, 122, 0.25), transparent 28%),
+                linear-gradient(180deg, rgba(37, 43, 59, 0.98), rgba(37, 43, 59, 0.98));
+            overflow: auto;
+            padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .detail-wrap {
+            padding: calc(16px + env(safe-area-inset-top, 0px)) 20px 0;
+        }
+
+        .detail-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .detail-title {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+        }
+
+        .detail-hero {
+            height: 300px;
+            border-radius: 34px;
+            padding: 24px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: white;
+            margin-bottom: 18px;
+        }
+
+        .detail-hero .brand-mark {
+            font-size: 54px;
+            max-width: 82%;
+            line-height: 0.92;
+        }
+
+        .detail-hero .card-type {
+            position: relative;
+            z-index: 1;
+            font-size: 15px;
+            opacity: 0.95;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+        }
+
+        .barcode-panel,
+        .info-panel,
+        .menu-panel {
+            margin-bottom: 16px;
+            padding: 24px;
+        }
+
+        .barcode-panel {
+            background: #fbfbfc;
+            color: #111;
+        }
+
+        .barcode-box {
+            min-height: 170px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .barcode-box svg,
+        .barcode-box canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .barcode-number {
+            text-align: center;
+            font-size: 18px;
+            letter-spacing: 0.22em;
+            margin-top: 14px;
+            font-family: "Space Grotesk", sans-serif;
+        }
+
+        .info-panel h4,
+        .menu-panel h4 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+
+        .info-panel p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .menu-panel {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .menu-row {
+            width: 100%;
+            padding: 22px 24px;
+            background: rgba(58, 65, 85, 0.96);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: left;
+        }
+
+        .menu-row:last-child {
+            border-bottom: 0;
+        }
+
+        .menu-row strong {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .menu-row span {
+            color: var(--muted);
+            display: block;
+            margin-top: 4px;
+        }
+
+        .banner {
+            top: calc(12px + env(safe-area-inset-top, 0px));
+            padding: 0 20px;
+            display: none;
+        }
+
+        .banner.visible {
+            display: block;
+        }
+
+        .banner-card {
+            border-radius: 24px;
+            background: rgba(27, 33, 47, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 16px 18px;
+            box-shadow: 0 18px 44px rgba(8, 12, 20, 0.34);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .banner-card strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .banner-card span {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .banner-card button {
+            background: rgba(38, 149, 255, 0.18);
+            color: white;
+            border-radius: 16px;
+            padding: 12px 14px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .scanner-sheet {
+            top: 0;
+            bottom: 0;
+            background: rgba(17, 23, 33, 0.98);
+            padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
+            overflow: auto;
+        }
+
+        .scanner-frame {
+            height: 360px;
+            border-radius: 28px;
+            overflow: hidden;
+            background:
+                linear-gradient(135deg, rgba(60, 68, 90, 0.9), rgba(33, 39, 53, 0.92));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin: 20px 0;
+        }
+
+        #scannerRegion {
+            width: 100%;
+            height: 100%;
+        }
+
+        .scanner-hint {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .toast {
+            bottom: calc(var(--nav-height) + 96px + env(safe-area-inset-bottom, 0px));
+            padding: 0 20px;
+            display: none;
+        }
+
+        .toast.visible {
+            display: block;
+        }
+
+        .toast-card {
+            margin-left: auto;
+            width: fit-content;
+            max-width: 100%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            background: rgba(18, 24, 36, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 460px) {
+            .statusbar {
+                padding-inline: 20px;
+            }
+
+            .page {
+                padding-inline: 14px;
+            }
+
+            .hero-row {
+                grid-template-columns: 128px 1fr;
+            }
+
+            .search-input {
+                font-size: 20px;
+                padding: 18px 18px 18px 60px;
+            }
+
+            .wallet-grid,
+            .catalog-grid,
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .frequent-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .detail-hero {
+                height: 244px;
+            }
+
+            .detail-hero .brand-mark {
+                font-size: 42px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <div class="glow"></div>
+
+        <div class="banner" id="installBanner">
+            <div class="banner-card">
+                <div>
+                    <strong>Установить Wallet</strong>
+                    <span>Добавьте приложение на домашний экран.</span>
+                </div>
+                <button type="button" id="installButton">Установить</button>
+            </div>
+        </div>
+
+        <div class="banner" id="updateBanner">
+            <div class="banner-card">
+                <div>
+                    <strong>Доступно обновление</strong>
+                    <span>Скачайте свежую версию приложения.</span>
+                </div>
+                <button type="button" id="updateButton">Обновить</button>
+            </div>
+        </div>
+
+        <div class="banner" id="offlineBanner">
+            <div class="banner-card">
+                <div>
+                    <strong>Оффлайн режим</strong>
+                    <span>Данные карт доступны локально на устройстве.</span>
+                </div>
+                <button type="button" id="offlineDismiss">Скрыть</button>
+            </div>
+        </div>
+
+
+
+        <main>
+            <section class="page active" data-page="home">
+
+
+                <div class="search-wrap">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    <input class="search-input" id="searchInput" type="search" placeholder="Найти карту, скидку">
+                </div>
+
+
+
+                <section class="section">
+                    <div class="section-head">
+                        <h2>Часто используете</h2>
+                        <small id="favoriteCountLabel">0 карт</small>
+                    </div>
+                    <div class="frequent-grid" id="favoritesGrid"></div>
+                </section>
+
+                <section class="section">
+                    <div class="section-head">
+                        <h2>Все карты</h2>
+                        <small id="totalCardsLabel">0 позиций</small>
+                    </div>
+                    <div class="wallet-grid" id="walletGrid"></div>
+                    <div class="empty-state hidden" id="emptyState">
+                        Карты пока не добавлены. Нажмите на кнопку с плюсом, чтобы создать первую карту, или импортируйте JSON-список.
+                    </div>
+                </section>
+            </section>
+
+
+        </main>
+
+
+    </div>
+
+
+
+    <section class="scanner-sheet" id="scannerSheet">
+        <div class="sheet-head">
+            <h3>Сканирование</h3>
+            <button type="button" class="icon-btn" id="closeScannerButton" aria-label="Закрыть сканер">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        <p class="scanner-hint">Наведи камеру на карту. Если библиотека сканера недоступна, используйте ручной ввод или импорт.</p>
+        <div class="scanner-frame">
+            <div id="scannerRegion"></div>
+        </div>
+        <button type="button" class="secondary-btn" id="scannerUseResult">Использовать результат</button>
+    </section>
+
+    <section class="detail-overlay" id="detailOverlay" aria-hidden="true">
+        <div class="detail-wrap">
+            <div class="detail-actions">
+                <button type="button" class="icon-btn" id="closeDetailButton" aria-label="Назад">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="detail-title" id="detailTitle">Карта</div>
+                <button type="button" class="icon-btn" id="toggleFavoriteButton" aria-label="Избранное">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 4H17C18.1 4 19 4.9 19 6V20L12 16.5L5 20V6C5 4.9 5.9 4 7 4Z" stroke="currentColor" stroke-width="1.8" fill="none"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="detail-hero screen-card" id="detailHero">
+                <div class="brand-mark" id="detailBrand">Карта</div>
+                <div class="card-type" id="detailTypeLabel">EAN-13</div>
+            </div>
+
+            <div class="barcode-panel screen-card">
+                <div class="barcode-box" id="barcodeBox"></div>
+                <div class="barcode-number" id="barcodeNumber"></div>
+            </div>
+
+            <div class="info-panel screen-card">
+                <h4>Принимается</h4>
+                <p id="detailAcceptedAt">Покажите карту кассиру</p>
+            </div>
+
+            <div class="menu-panel screen-card">
+                <button type="button" class="menu-row" data-detail-row="note">
+                    <div>
+                        <strong>О карте</strong>
+                        <span id="detailNoteRow">Описание карты</span>
+                    </div>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button type="button" class="menu-row" data-detail-row="terms">
+                    <div>
+                        <strong>Условия</strong>
+                        <span id="detailTermsRow">Дополнительные правила</span>
+                    </div>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button type="button" class="menu-row" data-detail-row="contacts">
+                    <div>
+                        <strong>Контакты</strong>
+                        <span id="detailContactsRow">Телефон или сайт</span>
+                    </div>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <button type="button" class="danger-btn" id="deleteCardButton">Удалить карту</button>
+        </div>
+    </section>
+
+    <div class="toast" id="toast">
+        <div class="toast-card" id="toastText">Готово</div>
+    </div>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+    <script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+        (function () {
+            const STORAGE_KEY = "wallet.cards.v1";
+            const LAST_PAGE_KEY = "wallet.page.v1";
+            const SAMPLE_CARDS = [
+                {
+                    id: "sample-lenta",
+                    name: "Лента",
+                    number: "K80 250 978 555 318 631 3",
+                    type: "CODE128",
+                    color: "#184ea0",
+                    favorite: true,
+                    note: "Карта №1 с персональными подборками и быстрым доступом к акциям.",
+                    acceptedAt: "Покажите карту на кассе",
+                    terms: "Баллы начисляются за покупки, специальные предложения доступны по акциям недели.",
+                    contacts: "lenta.com",
+                    builtin: true,
+                    lastUsed: Date.now() - 1000 * 60 * 60 * 5
+                },
+                {
+                    id: "sample-okey",
+                    name: "О'КЕЙ",
+                    number: "2443060228942",
+                    type: "EAN13",
+                    color: "#d92517",
+                    favorite: true,
+                    note: "Клубная карта O'KEY с накоплением бонусов.",
+                    acceptedAt: "Покажите карту на кассе",
+                    terms: "Бонусы начисляются за покупки, действуют персональные скидки.",
+                    contacts: "okmarket.ru",
+                    builtin: true,
+                    lastUsed: Date.now() - 1000 * 60 * 60 * 20
+                },
+                {
+                    id: "sample-x5",
+                    name: "Х5 Клуб",
+                    number: "1234567890128",
+                    type: "EAN13",
+                    color: "#68bf3f",
+                    favorite: true,
+                    note: "Единая бонусная карта для сетей X5 Group.",
+                    acceptedAt: "Используйте в приложении или на кассе",
+                    terms: "Доступны любимые категории и повышенные баллы.",
+                    contacts: "x5club.ru",
+                    builtin: true,
+                    lastUsed: Date.now() - 1000 * 60 * 60 * 48
+                },
+                {
+                    id: "sample-mvideo",
+                    name: "М.Видео",
+                    number: "04397221",
+                    type: "CODE128",
+                    color: "#ef2020",
+                    favorite: false,
+                    note: "Бонусная карта магазина техники.",
+                    acceptedAt: "Назовите номер или покажите штрихкод",
+                    terms: "Бонусы начисляются на технику и аксессуары.",
+                    contacts: "mvideo.ru",
+                    builtin: true,
+                    lastUsed: Date.now() - 1000 * 60 * 60 * 72
+                },
+                {
+                    id: "sample-auchan",
+                    name: "Ашан",
+                    number: "6501122334458",
+                    type: "EAN13",
+                    color: "#ffbf00",
+                    favorite: false,
+                    note: "Карта лояльности гипермаркета.",
+                    acceptedAt: "Покажите перед оплатой",
+                    terms: "Периодические купоны и скидки по предложениям сети.",
+                    contacts: "auchan.ru",
+                    builtin: true,
+                    lastUsed: Date.now() - 1000 * 60 * 60 * 96
+                },
+                {
+                    id: "sample-health",
+                    name: "О здоровье",
+                    number: "HEALTH-7788",
+                    type: "QR",
+                    color: "#e83b43",
+                    favorite: false,
+                    note: "Фармацевтическая карта с быстрым доступом к бонусам.",
+                    acceptedAt: "Покажите QR на экране",
+                    terms: "Промо-купоны и специальные акции для участников.",
+                    contacts: "example.health",
+                    builtin: true,
+                    lastUsed: Date.now() - 1000 * 60 * 60 * 140
+                }
+            ];
+
+            const CATALOG_ITEMS = [
+                { name: "Супермаркеты", subtitle: "Лента, O'KEY, Ашан, Перекрёсток", color: "#2254ab" },
+                { name: "Аптеки", subtitle: "QR и штрихкоды для быстрых покупок", color: "#cb474f" },
+                { name: "Спорт", subtitle: "Карты клубов и магазинов экипировки", color: "#b28a33" },
+                { name: "Техника", subtitle: "Бонусные программы электроники", color: "#ef2020" }
+            ];
+
+            const BENEFITS = [
+                { title: "Кешбэк до 30%", description: "Выберите любимые категории и сохраните карту в избранное.", color: "#1856b5" },
+                { title: "-15% в день рождения", description: "Добавьте заметку с условиями, чтобы не забыть про скидку.", color: "#1d5cbe" },
+                { title: "Купоны на сезон", description: "Импортируйте список карт из JSON и держите всё в одном месте.", color: "#6c56dd" },
+                { title: "Оффлайн доступ", description: "Штрихкоды открываются даже без сети после первого запуска.", color: "#2d9d70" }
+            ];
+
+            const state = {
+                cards: loadCards(),
+                activePage: localStorage.getItem(LAST_PAGE_KEY) || "home",
+                search: "",
+                selectedCardId: null,
+                installPrompt: null,
+                swRegistration: null,
+                scanner: null,
+                lastScanValue: ""
+            };
+
+            const refs = {
+                searchInput: document.getElementById("searchInput"),
+                favoritesGrid: document.getElementById("favoritesGrid"),
+                walletGrid: document.getElementById("walletGrid"),
+                emptyState: document.getElementById("emptyState"),
+                favoriteCountLabel: document.getElementById("favoriteCountLabel"),
+                totalCardsLabel: document.getElementById("totalCardsLabel"),
+                catalogGrid: document.getElementById("catalogGrid"),
+                benefitsGrid: document.getElementById("benefitsGrid"),
+                statsTotalCards: document.getElementById("statsTotalCards"),
+                statsFavorites: document.getElementById("statsFavorites"),
+                statsQrCount: document.getElementById("statsQrCount"),
+                networkStatusLabel: document.getElementById("networkStatusLabel"),
+                detailOverlay: document.getElementById("detailOverlay"),
+                cardForm: document.getElementById("cardForm"),
+                importTextarea: document.getElementById("importTextarea"),
+                importFileInput: document.getElementById("importFileInput"),
+                scanResult: document.getElementById("scanResult"),
+                scannerSheet: document.getElementById("scannerSheet"),
+                scannerRegion: document.getElementById("scannerRegion"),
+                detailTitle: document.getElementById("detailTitle"),
+                detailHero: document.getElementById("detailHero"),
+                detailBrand: document.getElementById("detailBrand"),
+                detailTypeLabel: document.getElementById("detailTypeLabel"),
+                barcodeBox: document.getElementById("barcodeBox"),
+                barcodeNumber: document.getElementById("barcodeNumber"),
+                detailAcceptedAt: document.getElementById("detailAcceptedAt"),
+                detailNoteRow: document.getElementById("detailNoteRow"),
+                detailTermsRow: document.getElementById("detailTermsRow"),
+                detailContactsRow: document.getElementById("detailContactsRow"),
+                installBanner: document.getElementById("installBanner"),
+                updateBanner: document.getElementById("updateBanner"),
+                offlineBanner: document.getElementById("offlineBanner"),
+                toast: document.getElementById("toast"),
+                toastText: document.getElementById("toastText"),
+                clock: document.getElementById("clock"),
+                batteryLevel: document.getElementById("batteryLevel")
+            };
+            
+            // Настройте URL вашего GitHub репозитория с картами
+            // Загрузите cards.json в ваш репозиторий и укажите прямую ссылку на raw-файл
+            // Пример: "https://raw.githubusercontent.com/USERNAME/REPO/BRANCH/cards.json"
+            // После настройки приложение будет автоматически синхронизировать карты с GitHub
+            const GITHUB_RAW_URL = "https://raw.githubusercontent.com/USERNAME/REPO/main/cards.json";
+
+            async function loadCards() {
+                let cards;
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    cards = raw ? JSON.parse(raw) : [];
+                } catch (error) {
+                    cards = [];
+                }
+
+                try {
+                    const response = await fetch(GITHUB_RAW_URL, { cache: "no-cache" });
+                    if (response.ok) {
+                        const githubCards = await response.json();
+                        if (Array.isArray(githubCards) && githubCards.length > 0) {
+                            const mergedCards = mergeCards(cards, githubCards);
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedCards));
+                            cards = mergedCards;
+                            showToast("Данные обновлены");
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        }
+                    }
+                } catch (error) {
+                    // GitHub fetch failed, use local data
+                }
+
+                return cards.length ? cards : SAMPLE_CARDS.slice();
+            }
+
+            async function syncCardsPeriodically() {
+                try {
+                    const response = await fetch(GITHUB_RAW_URL, { cache: "no-cache" });
+                    if (response.ok) {
+                        const githubCards = await response.json();
+                        if (Array.isArray(githubCards) && githubCards.length > 0) {
+                            const localRaw = localStorage.getItem(STORAGE_KEY);
+                            const localCards = localRaw ? JSON.parse(localRaw) : [];
+                            const mergedCards = mergeCards(localCards, githubCards);
+                            if (mergedCards.length !== localCards.length) {
+                                localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedCards));
+                                state.cards = mergedCards;
+                                renderStats();
+                                renderHome();
+                            }
+                        }
+                    }
+                } catch (error) {
+                    // GitHub fetch failed, skip sync
+                }
+            }
+
+            function mergeCards(localCards, githubCards) {
+                const localMap = new Map();
+                localCards.forEach(card => localMap.set(card.id, card));
+                
+                githubCards.forEach(githubCard => {
+                    if (!localMap.has(githubCard.id)) {
+                        githubCard.builtin = true;
+                        githubCard.lastUsed = Date.now();
+                        localMap.set(githubCard.id, githubCard);
+                    } else {
+                        const localCard = localMap.get(githubCard.id);
+                        if (githubCard.lastUpdated && localCard.lastUpdated) {
+                            if (new Date(githubCard.lastUpdated) > new Date(localCard.lastUpdated)) {
+                                githubCard.builtin = localCard.builtin;
+                                githubCard.lastUsed = localCard.lastUsed;
+                                localMap.set(githubCard.id, githubCard);
+                            }
+                        } else if (!localCard.lastUpdated && githubCard.lastUpdated) {
+                            githubCard.builtin = localCard.builtin;
+                            githubCard.lastUsed = localCard.lastUsed;
+                            localMap.set(githubCard.id, githubCard);
+                        }
+                    }
+                });
+                
+                return Array.from(localMap.values());
+            }
+
+            function persistCards() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state.cards));
+            }
+
+            function uniqueId() {
+                return "card-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+            }
+
+            function ensureCard(card) {
+                const cleaned = {
+                    id: card.id || uniqueId(),
+                    name: String(card.name || "Новая карта").trim(),
+                    number: String(card.number || card.barcode || "").trim(),
+                    type: normalizeType(card.type),
+                    color: normalizeColor(card.color),
+                    favorite: Boolean(card.favorite),
+                    note: String(card.note || card.description || "").trim(),
+                    acceptedAt: String(card.acceptedAt || "Покажите карту на кассе").trim(),
+                    terms: String(card.terms || "Условия не указаны").trim(),
+                    contacts: String(card.contacts || "Контакты не указаны").trim(),
+                    builtin: Boolean(card.builtin),
+                    lastUsed: Number(card.lastUsed || Date.now())
+                };
+
+                if (cleaned.type === "EAN13") {
+                    cleaned.number = sanitizeEan(cleaned.number);
+                }
+                if (!cleaned.number) {
+                    cleaned.number = cleaned.type === "QR" ? cleaned.id.toUpperCase() : "1234567890123";
+                }
+                return cleaned;
+            }
+
+            function normalizeType(type) {
+                const value = String(type || "").toUpperCase();
+                if (value === "QR" || value === "QRCODE") return "QR";
+                if (value === "EAN13" || value === "EAN-13") return "EAN13";
+                return "CODE128";
+            }
+
+            function normalizeColor(color) {
+                return /^#[0-9a-f]{6}$/i.test(String(color || "")) ? color : "#2a67c7";
+            }
+
+            function sanitizeEan(value) {
+                const digits = String(value || "").replace(/\D/g, "");
+                if (digits.length === 13) return digits;
+                const base = digits.padEnd(12, "0").slice(0, 12);
+                return base + calculateEanCheckDigit(base);
+            }
+
+            function calculateEanCheckDigit(base12) {
+                const digits = base12.split("").map(Number);
+                const sum = digits.reduce((acc, num, index) => acc + num * (index % 2 === 0 ? 1 : 3), 0);
+                return String((10 - (sum % 10)) % 10);
+            }
+
+            function formatCardNumber(card) {
+                if (card.type === "EAN13") {
+                    return sanitizeEan(card.number).replace(/(\d{3})(\d{3})(\d{3})(\d{3})(\d)/, "$1 $2 $3 $4 $5");
+                }
+                if (card.type === "QR") {
+                    return card.number;
+                }
+                return card.number.replace(/(.{4})/g, "$1 ").trim();
+            }
+
+            function getFilteredCards() {
+                const query = state.search.trim().toLowerCase();
+                const sorted = state.cards.slice().sort((a, b) => {
+                    if (a.favorite !== b.favorite) return a.favorite ? -1 : 1;
+                    return (b.lastUsed || 0) - (a.lastUsed || 0);
+                });
+
+                if (!query) return sorted;
+                return sorted.filter((card) => {
+                    return [
+                        card.name,
+                        card.number,
+                        card.note,
+                        card.terms,
+                        card.contacts
+                    ].join(" ").toLowerCase().includes(query);
+                });
+            }
+
+            function getFavorites() {
+                return getFilteredCards().filter((card) => card.favorite).slice(0, 6);
+            }
+
+            function render() {
+                renderPages();
+                renderHome();
+                renderStats();
+            }
+
+            function renderPages() {
+                document.querySelectorAll(".page").forEach((page) => {
+                    page.classList.toggle("active", page.dataset.page === state.activePage);
+                });
+                document.querySelectorAll(".nav-item").forEach((item) => {
+                    item.classList.toggle("active", item.dataset.nav === state.activePage);
+                });
+                localStorage.setItem(LAST_PAGE_KEY, state.activePage);
+            }
+
+            function renderHome() {
+                const cards = getFilteredCards();
+                const favorites = getFavorites();
+                refs.favoriteCountLabel.textContent = favorites.length + " карт";
+                refs.totalCardsLabel.textContent = cards.length + " позиций";
+
+                refs.favoritesGrid.innerHTML = "";
+                if (!favorites.length) {
+                    refs.favoritesGrid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;">Отметьте карту как часто используемую, чтобы она появилась здесь.</div>';
+                } else {
+                    favorites.forEach((card) => refs.favoritesGrid.appendChild(createMiniCard(card)));
+                }
+
+                refs.walletGrid.innerHTML = "";
+                refs.emptyState.classList.toggle("hidden", cards.length > 0);
+                cards.forEach((card) => refs.walletGrid.appendChild(createWalletCard(card)));
+            }
+
+
+
+
+
+            function renderStats() {
+                const total = state.cards.length;
+                const favorites = state.cards.filter((card) => card.favorite).length;
+                const qrs = state.cards.filter((card) => card.type === "QR").length;
+                refs.statsTotalCards.textContent = total;
+                refs.statsFavorites.textContent = favorites;
+                refs.statsQrCount.textContent = qrs;
+            }
+
+            function createMiniCard(card) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "card-mini";
+                button.style.background = cardGradient(card.color, card.name);
+                button.innerHTML = [
+                    '<span class="brand-mini">' + escapeHtml(card.name) + "</span>",
+                    "<span>" + escapeHtml(card.type === "QR" ? "QR-код" : "Штрихкод") + "</span>"
+                ].join("");
+                button.addEventListener("click", () => openDetail(card.id));
+                return button;
+            }
+
+            function createWalletCard(card) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "wallet-card";
+                button.style.background = cardGradient(card.color, card.name);
+                button.innerHTML = [
+                    '<div class="brand-mark">' + escapeHtml(card.name) + "</div>",
+                    '<div class="card-bottom">',
+                    '<div class="caption">' + escapeHtml(card.favorite ? "Часто используете" : card.type) + "</div>",
+                    '<div class="number">' + escapeHtml(shortCardNumber(card.number, card.type)) + "</div>",
+                    "</div>"
+                ].join("");
+                button.addEventListener("click", () => openDetail(card.id));
+                return button;
+            }
+
+            function shortCardNumber(number, type) {
+                if (type === "QR") return "QR";
+                const clean = String(number || "").replace(/\s+/g, "");
+                return clean.length > 12 ? clean.slice(0, 12) + "…" : clean;
+            }
+
+            function escapeHtml(value) {
+                return String(value)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;");
+            }
+
+            function cardGradient(color, name) {
+                const secondary = mixColor(color, nameHash(name) % 2 === 0 ? "#ffcb35" : "#ffffff", 0.14);
+                const deep = mixColor(color, "#0f1320", 0.32);
+                return "linear-gradient(135deg, " + color + " 0%, " + secondary + " 46%, " + deep + " 100%)";
+            }
+
+            function catalogGradient(color) {
+                return "linear-gradient(135deg, " + color + " 0%, " + mixColor(color, "#ffffff", 0.18) + " 100%)";
+            }
+
+            function benefitGradient(color, index) {
+                const alt = index % 2 === 0 ? "#ffcb35" : "#8d6cf2";
+                return "linear-gradient(135deg, " + color + " 0%, " + mixColor(color, alt, 0.26) + " 100%)";
+            }
+
+            function mixColor(colorA, colorB, ratio) {
+                const a = hexToRgb(colorA);
+                const b = hexToRgb(colorB);
+                const mix = {
+                    r: Math.round(a.r + (b.r - a.r) * ratio),
+                    g: Math.round(a.g + (b.g - a.g) * ratio),
+                    b: Math.round(a.b + (b.b - a.b) * ratio)
+                };
+                return rgbToHex(mix.r, mix.g, mix.b);
+            }
+
+            function hexToRgb(hex) {
+                const safe = normalizeColor(hex).slice(1);
+                return {
+                    r: parseInt(safe.slice(0, 2), 16),
+                    g: parseInt(safe.slice(2, 4), 16),
+                    b: parseInt(safe.slice(4, 6), 16)
+                };
+            }
+
+            function rgbToHex(r, g, b) {
+                return "#" + [r, g, b].map((value) => value.toString(16).padStart(2, "0")).join("");
+            }
+
+            function nameHash(name) {
+                return String(name || "").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            }
+
+
+
+            function switchSheetTab(tab) {
+                document.querySelectorAll(".sheet-tab").forEach((item) => {
+                    item.classList.toggle("active", item.dataset.tab === tab);
+                });
+                document.querySelectorAll(".tab-panel").forEach((panel) => {
+                    panel.classList.toggle("active", panel.dataset.tabPanel === tab);
+                });
+            }
+
+            function openDetail(cardId) {
+                const card = state.cards.find((item) => item.id === cardId);
+                if (!card) return;
+
+                state.selectedCardId = cardId;
+                card.lastUsed = Date.now();
+                persistCards();
+                renderStats();
+                renderHome();
+
+                refs.detailTitle.textContent = card.name;
+                refs.detailBrand.textContent = card.name;
+                refs.detailTypeLabel.textContent = card.type === "QR" ? "QR code" : card.type;
+                refs.detailHero.style.background = cardGradient(card.color, card.name);
+                refs.detailAcceptedAt.textContent = card.acceptedAt || "Покажите карту на кассе";
+                refs.detailNoteRow.textContent = trimText(card.note || "Описание не указано", 64);
+                refs.detailTermsRow.textContent = trimText(card.terms || "Условия не указаны", 64);
+                refs.detailContactsRow.textContent = trimText(card.contacts || "Контакты не указаны", 64);
+                refs.barcodeNumber.textContent = formatCardNumber(card);
+
+                renderBarcode(card);
+                refs.detailOverlay.classList.add("visible");
+                refs.detailOverlay.setAttribute("aria-hidden", "false");
+            }
+
+            function closeDetail() {
+                refs.detailOverlay.classList.remove("visible");
+                refs.detailOverlay.setAttribute("aria-hidden", "true");
+                state.selectedCardId = null;
+                refs.barcodeBox.innerHTML = "";
+            }
+
+            function trimText(text, max) {
+                return text.length > max ? text.slice(0, max - 1) + "…" : text;
+            }
+
+            function renderBarcode(card) {
+                refs.barcodeBox.innerHTML = "";
+                if (card.type === "QR") {
+                    renderQrCode(card.number);
+                    return;
+                }
+
+                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                svg.setAttribute("width", "100%");
+                svg.setAttribute("height", "150");
+                refs.barcodeBox.appendChild(svg);
+
+                const value = card.type === "EAN13" ? sanitizeEan(card.number) : String(card.number || "").replace(/\s+/g, "");
+                if (window.JsBarcode) {
+                    try {
+                        window.JsBarcode(svg, value, {
+                            format: card.type,
+                            lineColor: "#000",
+                            width: 2,
+                            height: 100,
+                            displayValue: false,
+                            margin: 6,
+                            background: "#fbfbfc"
+                        });
+                        return;
+                    } catch (error) {
+                        fallbackBars(svg, value);
+                        return;
+                    }
+                }
+                fallbackBars(svg, value);
+            }
+
+            function fallbackBars(svg, value) {
+                const cleaned = String(value || "").replace(/\D/g, "") || "123456789012";
+                const width = 340;
+                const height = 120;
+                svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+                svg.innerHTML = "";
+                let x = 16;
+                for (let i = 0; i < cleaned.length; i += 1) {
+                    const digit = Number(cleaned[i]) || 0;
+                    const barWidth = 2 + (digit % 3);
+                    const gap = 1 + ((digit + i) % 2);
+                    for (let j = 0; j < 4; j += 1) {
+                        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                        rect.setAttribute("x", x);
+                        rect.setAttribute("y", 8 + (j % 2 === 0 ? 0 : 10));
+                        rect.setAttribute("width", barWidth);
+                        rect.setAttribute("height", 92 - (digit % 3) * 8);
+                        rect.setAttribute("fill", "#000");
+                        svg.appendChild(rect);
+                        x += barWidth + gap;
+                    }
+                    x += 2;
+                }
+            }
+
+            function renderQrCode(value) {
+                if (window.QRCode && window.QRCode.toCanvas) {
+                    const canvas = document.createElement("canvas");
+                    refs.barcodeBox.appendChild(canvas);
+                    window.QRCode.toCanvas(canvas, String(value || "wallet-card"), {
+                        width: 180,
+                        margin: 1,
+                        color: {
+                            dark: "#000000",
+                            light: "#fbfbfc"
+                        }
+                    }, function (error) {
+                        if (error) {
+                            refs.barcodeBox.innerHTML = "";
+                            fallbackQr(value);
+                        }
+                    });
+                } else {
+                    fallbackQr(value);
+                }
+            }
+
+            function fallbackQr(value) {
+                const size = 21;
+                const canvas = document.createElement("canvas");
+                canvas.width = 210;
+                canvas.height = 210;
+                const ctx = canvas.getContext("2d");
+                ctx.fillStyle = "#fbfbfc";
+                ctx.fillRect(0, 0, 210, 210);
+                const seed = Array.from(String(value || "wallet")).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                for (let y = 0; y < size; y += 1) {
+                    for (let x = 0; x < size; x += 1) {
+                        const isFinder = (x < 5 && y < 5) || (x > 15 && y < 5) || (x < 5 && y > 15);
+                        const isBorder = isFinder && (x % 4 === 0 || y % 4 === 0 || x % 4 === 3 || y % 4 === 3);
+                        const fill = isFinder ? (isBorder || (x % 4 > 0 && y % 4 > 0 && x % 4 < 3 && y % 4 < 3)) : ((x * 13 + y * 7 + seed) % 5 < 2);
+                        if (fill) {
+                            ctx.fillStyle = "#000";
+                            ctx.fillRect(x * 10, y * 10, 10, 10);
+                        }
+                    }
+                }
+                refs.barcodeBox.appendChild(canvas);
+            }
+
+            function setActivePage(page) {
+                state.activePage = page;
+                renderPages();
+            }
+
+            function showToast(message) {
+                refs.toastText.textContent = message;
+                refs.toast.classList.add("visible");
+                window.clearTimeout(showToast.timer);
+                showToast.timer = window.setTimeout(() => {
+                    refs.toast.classList.remove("visible");
+                }, 2200);
+            }
+
+
+
+
+
+            function dedupeCards(cards) {
+                const seen = new Set();
+                return cards.filter((card) => {
+                    const key = card.id + "|" + card.number + "|" + card.name;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+            }
+
+            function exportCards() {
+                const blob = new Blob([JSON.stringify(state.cards, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = "wallet-cards.json";
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+                showToast("JSON экспортирован");
+            }
+
+            function deleteSelectedCard() {
+                if (!state.selectedCardId) return;
+                state.cards = state.cards.filter((card) => card.id !== state.selectedCardId);
+                persistCards();
+                render();
+                closeDetail();
+                showToast("Карта удалена");
+            }
+
+            function toggleSelectedFavorite() {
+                const card = state.cards.find((item) => item.id === state.selectedCardId);
+                if (!card) return;
+                card.favorite = !card.favorite;
+                persistCards();
+                render();
+                openDetail(card.id);
+                showToast(card.favorite ? "Добавлено в избранное" : "Убрано из избранного");
+            }
+
+            function handleDetailRow(event) {
+                const card = state.cards.find((item) => item.id === state.selectedCardId);
+                if (!card) return;
+                const row = event.currentTarget.dataset.detailRow;
+                const content = row === "note" ? card.note : row === "terms" ? card.terms : card.contacts;
+                showToast(content || "Нет данных");
+            }
+
+            function updateNetworkStatus() {
+                const offline = !navigator.onLine;
+                refs.networkStatusLabel.textContent = offline ? "Нет подключения, используется кэш" : "Онлайн, кэш готов для оффлайна";
+                refs.offlineBanner.classList.toggle("visible", offline);
+            }
+
+            function tickClock() {
+                const now = new Date();
+                refs.clock.textContent = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+                refs.batteryLevel.textContent = String(48 + (now.getMinutes() % 8));
+            }
+
+            function startScan() {
+                if (!window.Html5Qrcode) {
+                    showToast("Сканер камеры недоступен в этом браузере");
+                    return;
+                }
+                refs.scannerSheet.classList.add("visible");
+                refs.sheetBackdrop.classList.add("visible");
+                if (state.scanner) return;
+
+                state.scanner = new window.Html5Qrcode("scannerRegion");
+                state.scanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 220, height: 160 } },
+                    (decodedText) => {
+                        state.lastScanValue = decodedText;
+                        refs.scanResult.value = decodedText;
+                    },
+                    () => {}
+                ).catch(() => {
+                    showToast("Не удалось запустить камеру");
+                });
+            }
+
+            function stopScan(closeSheetToo) {
+                const finish = () => {
+                    if (closeSheetToo) {
+                        refs.scannerSheet.classList.remove("visible");
+                        if (!refs.addSheet.classList.contains("visible")) {
+                            refs.sheetBackdrop.classList.remove("visible");
+                        }
+                    }
+                };
+                if (state.scanner) {
+                    state.scanner.stop().then(() => {
+                        state.scanner.clear();
+                        state.scanner = null;
+                        finish();
+                    }).catch(() => {
+                        state.scanner = null;
+                        finish();
+                    });
+                } else {
+                    finish();
+                }
+            }
+
+            function registerServiceWorker() {
+                if (!("serviceWorker" in navigator) || location.protocol === "file:") {
+                    return;
+                }
+                navigator.serviceWorker.register("./sw.js", { scope: "./" }).then((registration) => {
+                    state.swRegistration = registration;
+                    if (registration.waiting) {
+                        refs.updateBanner.classList.add("visible");
+                    }
+                    registration.addEventListener("updatefound", () => {
+                        const newWorker = registration.installing;
+                        if (!newWorker) return;
+                        newWorker.addEventListener("statechange", () => {
+                            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                                refs.updateBanner.classList.add("visible");
+                            }
+                        });
+                    });
+                }).catch(() => {
+                    refs.updateBanner.classList.remove("visible");
+                });
+            }
+
+            function applyUpdate() {
+                if (state.swRegistration && state.swRegistration.waiting) {
+                    state.swRegistration.waiting.postMessage({ type: "SKIP_WAITING" });
+                    navigator.serviceWorker.addEventListener("controllerchange", function reloadOnce() {
+                        navigator.serviceWorker.removeEventListener("controllerchange", reloadOnce);
+                        location.reload();
+                    });
+                } else {
+                    location.reload();
+                }
+            }
+
+            function setupInstallPrompt() {
+                window.addEventListener("beforeinstallprompt", (event) => {
+                    event.preventDefault();
+                    state.installPrompt = event;
+                    refs.installBanner.classList.add("visible");
+                });
+                window.addEventListener("appinstalled", () => {
+                    state.installPrompt = null;
+                    refs.installBanner.classList.remove("visible");
+                    showToast("Приложение установлено");
+                });
+            }
+
+            function triggerInstall() {
+                if (!state.installPrompt) {
+                    showToast("Откройте сайт через браузер и используйте Добавить на экран");
+                    return;
+                }
+                state.installPrompt.prompt();
+                state.installPrompt.userChoice.finally(() => {
+                    state.installPrompt = null;
+                    refs.installBanner.classList.remove("visible");
+                });
+            }
+
+            function bindEvents() {
+            document.querySelectorAll(".nav-item").forEach((item) => {
+                    item.addEventListener("click", () => setActivePage(item.dataset.nav));
+                });
+
+                refs.searchInput.addEventListener("input", (event) => {
+                    state.search = event.target.value;
+                    renderHome();
+                });
+
+                document.getElementById("closeSheet").addEventListener("click", closeAddSheet);
+                refs.sheetBackdrop.addEventListener("click", () => {
+                    closeAddSheet();
+                    stopScan(true);
+                    closeDetail();
+                });
+                document.getElementById("importTextareaButton").addEventListener("click", () => importCardsFromText(refs.importTextarea.value));
+                document.getElementById("importFileButton").addEventListener("click", () => refs.importFileInput.click());
+                refs.importFileInput.addEventListener("change", (event) => {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) return;
+                    file.text().then(importCardsFromText);
+                    event.target.value = "";
+                });
+                document.getElementById("exportCardsButton").addEventListener("click", exportCards);
+
+                document.querySelectorAll(".sheet-tab").forEach((button) => {
+                    button.addEventListener("click", () => {
+                        switchSheetTab(button.dataset.tab);
+                    });
+                });
+
+                document.getElementById("startScanButton").addEventListener("click", startScan);
+                document.getElementById("stopScanButton").addEventListener("click", () => stopScan(false));
+                document.getElementById("closeScannerButton").addEventListener("click", () => stopScan(true));
+                document.getElementById("applyScanButton").addEventListener("click", () => {
+                    document.getElementById("cardNumber").value = refs.scanResult.value;
+                    switchSheetTab("manual");
+                    showToast("Значение перенесено в форму");
+                });
+                document.getElementById("scannerUseResult").addEventListener("click", () => {
+                    document.getElementById("cardNumber").value = refs.scanResult.value || state.lastScanValue;
+                    stopScan(true);
+                    showToast("Результат перенесён");
+                });
+
+                document.getElementById("closeDetailButton").addEventListener("click", closeDetail);
+                document.getElementById("deleteCardButton").addEventListener("click", deleteSelectedCard);
+                document.getElementById("toggleFavoriteButton").addEventListener("click", toggleSelectedFavorite);
+                document.querySelectorAll(".menu-row").forEach((row) => row.addEventListener("click", handleDetailRow));
+
+                document.getElementById("installButton").addEventListener("click", triggerInstall);
+                document.getElementById("installMoreButton").addEventListener("click", triggerInstall);
+                document.getElementById("updateButton").addEventListener("click", applyUpdate);
+                document.getElementById("offlineDismiss").addEventListener("click", () => refs.offlineBanner.classList.remove("visible"));
+                document.getElementById("toggleOfflineButton").addEventListener("click", () => {
+                    refs.offlineBanner.classList.toggle("visible");
+                });
+
+                window.addEventListener("online", updateNetworkStatus);
+                window.addEventListener("offline", updateNetworkStatus);
+            }
+
+             (async () => {
+                 state.cards = await loadCards();
+                 state.cards = dedupeCards(state.cards.map(ensureCard));
+                 persistCards();
+                 bindEvents();
+                 tickClock();
+                 setInterval(tickClock, 30000);
+                 setActivePage(state.activePage);
+                 render();
+                 setupInstallPrompt();
+                 registerServiceWorker();
+                 setInterval(syncCardsPeriodically, 5 * 60 * 1000);
+             })();
+        })();
+    </script>
+</body>
+</html>
