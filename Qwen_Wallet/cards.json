@@ -11,7 +11,8 @@
     "terms": "Баллы начисляются за покупки, специальные предложения доступны по акциям недели.",
     "contacts": "lenta.com",
     "builtin": true,
-    "lastUsed": 1745395200000
+    "lastUsed": 1745395200000,
+    "lastUpdated": 1745481600000
   },
   {
     "id": "okey-card",
@@ -25,7 +26,8 @@
     "terms": "Бонусы начисляются за покупки, действуют персональные скидки.",
     "contacts": "okmarket.ru",
     "builtin": true,
-    "lastUsed": 1745391600000
+    "lastUsed": 1745391600000,
+    "lastUpdated": 1745568000000
   },
   {
     "id": "x5-card",
@@ -39,7 +41,8 @@
     "terms": "Доступны любимые категории и повышенные баллы.",
     "contacts": "x5club.ru",
     "builtin": true,
-    "lastUsed": 1745388000000
+    "lastUsed": 1745388000000,
+    "lastUpdated": 1745654400000
   },
   {
     "id": "magnit-card",
@@ -53,7 +56,8 @@
     "terms": "Баллы начисляются за каждую покупку, можно обменять на купоны.",
     "contacts": "magnit.ru",
     "builtin": true,
-    "lastUsed": 1745384400000
+    "lastUsed": 1745384400000,
+    "lastUpdated": 1745740800000
   },
   {
     "id": "auchan-card",
@@ -67,7 +71,8 @@
     "terms": "Периодические купоны и скидки по предложениям сети.",
     "contacts": "auchan.ru",
     "builtin": true,
-    "lastUsed": 1745380800000
+    "lastUsed": 1745380800000,
+    "lastUpdated": 1745827200000
   },
   {
     "id": "sport-card",
@@ -81,7 +86,8 @@
     "terms": "Скидки на спортивную одежду, инвентарь и питание.",
     "contacts": "sport-store.ru",
     "builtin": true,
-    "lastUsed": 1745377200000
+    "lastUsed": 1745377200000,
+    "lastUpdated": 1745913600000
   },
   {
     "id": "perekrestok-card",
@@ -95,7 +101,8 @@
     "terms": "Накопительные баллы, персональные предложения.",
     "contacts": "perekrestok.ru",
     "builtin": true,
-    "lastUsed": 1745373600000
+    "lastUsed": 1745373600000,
+    "lastUpdated": 1745999999000
   },
   {
     "id": "pyaterochka-card",
@@ -109,6 +116,7 @@
     "terms": "Накопительные баллы, скидки по акциям.",
     "contacts": "5ka.ru",
     "builtin": true,
-    "lastUsed": 1745370000000
+    "lastUsed": 1745370000000,
+    "lastUpdated": 1746086400000
   }
 ]
