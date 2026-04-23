@@ -1356,19 +1356,7 @@
                 emptyState: document.getElementById("emptyState"),
                 favoriteCountLabel: document.getElementById("favoriteCountLabel"),
                 totalCardsLabel: document.getElementById("totalCardsLabel"),
-                catalogGrid: document.getElementById("catalogGrid"),
-                benefitsGrid: document.getElementById("benefitsGrid"),
-                statsTotalCards: document.getElementById("statsTotalCards"),
-                statsFavorites: document.getElementById("statsFavorites"),
-                statsQrCount: document.getElementById("statsQrCount"),
-                networkStatusLabel: document.getElementById("networkStatusLabel"),
                 detailOverlay: document.getElementById("detailOverlay"),
-                cardForm: document.getElementById("cardForm"),
-                importTextarea: document.getElementById("importTextarea"),
-                importFileInput: document.getElementById("importFileInput"),
-                scanResult: document.getElementById("scanResult"),
-                scannerSheet: document.getElementById("scannerSheet"),
-                scannerRegion: document.getElementById("scannerRegion"),
                 detailTitle: document.getElementById("detailTitle"),
                 detailHero: document.getElementById("detailHero"),
                 detailBrand: document.getElementById("detailBrand"),
@@ -1379,13 +1367,11 @@
                 detailNoteRow: document.getElementById("detailNoteRow"),
                 detailTermsRow: document.getElementById("detailTermsRow"),
                 detailContactsRow: document.getElementById("detailContactsRow"),
-                installBanner: document.getElementById("installBanner"),
-                updateBanner: document.getElementById("updateBanner"),
-                offlineBanner: document.getElementById("offlineBanner"),
+                deleteCardButton: document.getElementById("deleteCardButton"),
+                toggleFavoriteButton: document.getElementById("toggleFavoriteButton"),
                 toast: document.getElementById("toast"),
                 toastText: document.getElementById("toastText"),
-                clock: document.getElementById("clock"),
-                batteryLevel: document.getElementById("batteryLevel")
+                sheetBackdrop: document.querySelector(".sheet-backdrop")
             };
             
             // Настройте URL вашего GitHub репозитория с картами
@@ -1412,9 +1398,6 @@
                             localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedCards));
                             cards = mergedCards;
                             showToast("Данные обновлены");
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1000);
                         }
                     }
                 } catch (error) {
@@ -1423,6 +1406,20 @@
 
                 return cards.length ? cards : SAMPLE_CARDS.slice();
             }
+
+            function cardsEqual(a, b) {
+    return a.id === b.id &&
+           a.name === b.name &&
+           a.number === b.number &&
+           a.type === b.type &&
+           a.color === b.color &&
+           a.favorite === b.favorite &&
+           a.note === b.note &&
+           a.acceptedAt === b.acceptedAt &&
+           a.terms === b.terms &&
+           a.contacts === b.contacts &&
+           (a.lastUpdated || 0) === (b.lastUpdated || 0);
+}
 
             async function syncCardsPeriodically() {
                 try {
@@ -1433,12 +1430,21 @@
                             const localRaw = localStorage.getItem(STORAGE_KEY);
                             const localCards = localRaw ? JSON.parse(localRaw) : [];
                             const mergedCards = mergeCards(localCards, githubCards);
-                            if (mergedCards.length !== localCards.length) {
-                                localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedCards));
-                                state.cards = mergedCards;
-                                renderStats();
-                                renderHome();
-                            }
+                            const localById = new Map(localCards.map(c => [c.id, c]));
+                            const mergedById = new Map(mergedCards.map(c => [c.id, c]));
+
+                            const hasChanges = localById.size !== mergedById.size ||
+                                Array.from(mergedById.values()).some(mergedCard => {
+                                    const localCard = localById.get(mergedCard.id);
+                                    return !localCard || !cardsEqual(mergedCard, localCard);
+                                });
+
+                             if (hasChanges) {
+                                 localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedCards));
+                                 state.cards = mergedCards;
+                                 renderHome();
+                                 showToast("Карты синхронизированы");
+                             }
                         }
                     }
                 } catch (error) {
@@ -1449,28 +1455,27 @@
             function mergeCards(localCards, githubCards) {
                 const localMap = new Map();
                 localCards.forEach(card => localMap.set(card.id, card));
-                
+
                 githubCards.forEach(githubCard => {
                     if (!localMap.has(githubCard.id)) {
                         githubCard.builtin = true;
                         githubCard.lastUsed = Date.now();
+                        githubCard.lastUpdated = githubCard.lastUpdated || Date.now();
                         localMap.set(githubCard.id, githubCard);
                     } else {
                         const localCard = localMap.get(githubCard.id);
-                        if (githubCard.lastUpdated && localCard.lastUpdated) {
-                            if (new Date(githubCard.lastUpdated) > new Date(localCard.lastUpdated)) {
-                                githubCard.builtin = localCard.builtin;
-                                githubCard.lastUsed = localCard.lastUsed;
-                                localMap.set(githubCard.id, githubCard);
-                            }
-                        } else if (!localCard.lastUpdated && githubCard.lastUpdated) {
+                        const localTime = localCard.lastUpdated ? new Date(localCard.lastUpdated).getTime() : 0;
+                        const githubTime = githubCard.lastUpdated ? new Date(githubCard.lastUpdated).getTime() : 0;
+
+                        if (githubTime > localTime) {
                             githubCard.builtin = localCard.builtin;
                             githubCard.lastUsed = localCard.lastUsed;
+                            githubCard.lastUpdated = githubCard.lastUpdated || Date.now();
                             localMap.set(githubCard.id, githubCard);
                         }
                     }
                 });
-                
+
                 return Array.from(localMap.values());
             }
 
@@ -1560,38 +1565,17 @@
                 });
             }
 
-            function getFavorites() {
-                return getFilteredCards().filter((card) => card.favorite).slice(0, 6);
-            }
+            
 
             function render() {
-                renderPages();
                 renderHome();
-                renderStats();
             }
 
-            function renderPages() {
-                document.querySelectorAll(".page").forEach((page) => {
-                    page.classList.toggle("active", page.dataset.page === state.activePage);
-                });
-                document.querySelectorAll(".nav-item").forEach((item) => {
-                    item.classList.toggle("active", item.dataset.nav === state.activePage);
-                });
-                localStorage.setItem(LAST_PAGE_KEY, state.activePage);
-            }
+            
 
             function renderHome() {
                 const cards = getFilteredCards();
-                const favorites = getFavorites();
-                refs.favoriteCountLabel.textContent = favorites.length + " карт";
                 refs.totalCardsLabel.textContent = cards.length + " позиций";
-
-                refs.favoritesGrid.innerHTML = "";
-                if (!favorites.length) {
-                    refs.favoritesGrid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;">Отметьте карту как часто используемую, чтобы она появилась здесь.</div>';
-                } else {
-                    favorites.forEach((card) => refs.favoritesGrid.appendChild(createMiniCard(card)));
-                }
 
                 refs.walletGrid.innerHTML = "";
                 refs.emptyState.classList.toggle("hidden", cards.length > 0);
@@ -1602,14 +1586,7 @@
 
 
 
-            function renderStats() {
-                const total = state.cards.length;
-                const favorites = state.cards.filter((card) => card.favorite).length;
-                const qrs = state.cards.filter((card) => card.type === "QR").length;
-                refs.statsTotalCards.textContent = total;
-                refs.statsFavorites.textContent = favorites;
-                refs.statsQrCount.textContent = qrs;
-            }
+
 
             function createMiniCard(card) {
                 const button = document.createElement("button");
@@ -1708,30 +1685,29 @@
                 });
             }
 
-            function openDetail(cardId) {
-                const card = state.cards.find((item) => item.id === cardId);
-                if (!card) return;
+             function openDetail(cardId) {
+                 const card = state.cards.find((item) => item.id === cardId);
+                 if (!card) return;
 
-                state.selectedCardId = cardId;
-                card.lastUsed = Date.now();
-                persistCards();
-                renderStats();
-                renderHome();
+                 state.selectedCardId = cardId;
+                 card.lastUsed = Date.now();
+                 persistCards();
+                 renderHome();
 
-                refs.detailTitle.textContent = card.name;
-                refs.detailBrand.textContent = card.name;
-                refs.detailTypeLabel.textContent = card.type === "QR" ? "QR code" : card.type;
-                refs.detailHero.style.background = cardGradient(card.color, card.name);
-                refs.detailAcceptedAt.textContent = card.acceptedAt || "Покажите карту на кассе";
-                refs.detailNoteRow.textContent = trimText(card.note || "Описание не указано", 64);
-                refs.detailTermsRow.textContent = trimText(card.terms || "Условия не указаны", 64);
-                refs.detailContactsRow.textContent = trimText(card.contacts || "Контакты не указаны", 64);
-                refs.barcodeNumber.textContent = formatCardNumber(card);
+                 refs.detailTitle.textContent = card.name;
+                 refs.detailBrand.textContent = card.name;
+                 refs.detailTypeLabel.textContent = card.type === "QR" ? "QR code" : card.type;
+                 refs.detailHero.style.background = cardGradient(card.color, card.name);
+                 refs.detailAcceptedAt.textContent = card.acceptedAt || "Покажите карту на кассе";
+                 refs.detailNoteRow.textContent = trimText(card.note || "Описание не указано", 64);
+                 refs.detailTermsRow.textContent = trimText(card.terms || "Условия не указаны", 64);
+                 refs.detailContactsRow.textContent = trimText(card.contacts || "Контакты не указаны", 64);
+                 refs.barcodeNumber.textContent = formatCardNumber(card);
 
-                renderBarcode(card);
-                refs.detailOverlay.classList.add("visible");
-                refs.detailOverlay.setAttribute("aria-hidden", "false");
-            }
+                 renderBarcode(card);
+                 refs.detailOverlay.classList.add("visible");
+                 refs.detailOverlay.setAttribute("aria-hidden", "false");
+             }
 
             function closeDetail() {
                 refs.detailOverlay.classList.remove("visible");
@@ -1915,17 +1891,9 @@
                 showToast(content || "Нет данных");
             }
 
-            function updateNetworkStatus() {
-                const offline = !navigator.onLine;
-                refs.networkStatusLabel.textContent = offline ? "Нет подключения, используется кэш" : "Онлайн, кэш готов для оффлайна";
-                refs.offlineBanner.classList.toggle("visible", offline);
-            }
 
-            function tickClock() {
-                const now = new Date();
-                refs.clock.textContent = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-                refs.batteryLevel.textContent = String(48 + (now.getMinutes() % 8));
-            }
+
+
 
             function startScan() {
                 if (!window.Html5Qrcode) {
@@ -2008,18 +1976,7 @@
                 }
             }
 
-            function setupInstallPrompt() {
-                window.addEventListener("beforeinstallprompt", (event) => {
-                    event.preventDefault();
-                    state.installPrompt = event;
-                    refs.installBanner.classList.add("visible");
-                });
-                window.addEventListener("appinstalled", () => {
-                    state.installPrompt = null;
-                    refs.installBanner.classList.remove("visible");
-                    showToast("Приложение установлено");
-                });
-            }
+            
 
             function triggerInstall() {
                 if (!state.installPrompt) {
@@ -2033,82 +1990,41 @@
                 });
             }
 
-            function bindEvents() {
-            document.querySelectorAll(".nav-item").forEach((item) => {
-                    item.addEventListener("click", () => setActivePage(item.dataset.nav));
-                });
+function bindEvents() {
+    // Search
+    refs.searchInput.addEventListener("input", (event) => {
+        state.search = event.target.value;
+        renderHome();
+    });
 
-                refs.searchInput.addEventListener("input", (event) => {
-                    state.search = event.target.value;
-                    renderHome();
-                });
+    // Close detail on backdrop click
+    refs.sheetBackdrop.addEventListener("click", () => {
+        closeDetail();
+    });
 
-                document.getElementById("closeSheet").addEventListener("click", closeAddSheet);
-                refs.sheetBackdrop.addEventListener("click", () => {
-                    closeAddSheet();
-                    stopScan(true);
-                    closeDetail();
-                });
-                document.getElementById("importTextareaButton").addEventListener("click", () => importCardsFromText(refs.importTextarea.value));
-                document.getElementById("importFileButton").addEventListener("click", () => refs.importFileInput.click());
-                refs.importFileInput.addEventListener("change", (event) => {
-                    const file = event.target.files && event.target.files[0];
-                    if (!file) return;
-                    file.text().then(importCardsFromText);
-                    event.target.value = "";
-                });
-                document.getElementById("exportCardsButton").addEventListener("click", exportCards);
+    // Detail view actions
+    document.getElementById("closeDetailButton").addEventListener("click", closeDetail);
+    document.getElementById("deleteCardButton").addEventListener("click", deleteSelectedCard);
+    document.getElementById("toggleFavoriteButton").addEventListener("click", toggleSelectedFavorite);
+    document.querySelectorAll(".menu-row").forEach((row) => row.addEventListener("click", handleDetailRow));
 
-                document.querySelectorAll(".sheet-tab").forEach((button) => {
-                    button.addEventListener("click", () => {
-                        switchSheetTab(button.dataset.tab);
-                    });
-                });
+    // PWA install/update
 
-                document.getElementById("startScanButton").addEventListener("click", startScan);
-                document.getElementById("stopScanButton").addEventListener("click", () => stopScan(false));
-                document.getElementById("closeScannerButton").addEventListener("click", () => stopScan(true));
-                document.getElementById("applyScanButton").addEventListener("click", () => {
-                    document.getElementById("cardNumber").value = refs.scanResult.value;
-                    switchSheetTab("manual");
-                    showToast("Значение перенесено в форму");
-                });
-                document.getElementById("scannerUseResult").addEventListener("click", () => {
-                    document.getElementById("cardNumber").value = refs.scanResult.value || state.lastScanValue;
-                    stopScan(true);
-                    showToast("Результат перенесён");
-                });
 
-                document.getElementById("closeDetailButton").addEventListener("click", closeDetail);
-                document.getElementById("deleteCardButton").addEventListener("click", deleteSelectedCard);
-                document.getElementById("toggleFavoriteButton").addEventListener("click", toggleSelectedFavorite);
-                document.querySelectorAll(".menu-row").forEach((row) => row.addEventListener("click", handleDetailRow));
 
-                document.getElementById("installButton").addEventListener("click", triggerInstall);
-                document.getElementById("installMoreButton").addEventListener("click", triggerInstall);
-                document.getElementById("updateButton").addEventListener("click", applyUpdate);
-                document.getElementById("offlineDismiss").addEventListener("click", () => refs.offlineBanner.classList.remove("visible"));
-                document.getElementById("toggleOfflineButton").addEventListener("click", () => {
-                    refs.offlineBanner.classList.toggle("visible");
-                });
 
-                window.addEventListener("online", updateNetworkStatus);
-                window.addEventListener("offline", updateNetworkStatus);
-            }
+}
 
-             (async () => {
-                 state.cards = await loadCards();
-                 state.cards = dedupeCards(state.cards.map(ensureCard));
-                 persistCards();
-                 bindEvents();
-                 tickClock();
-                 setInterval(tickClock, 30000);
-                 setActivePage(state.activePage);
-                 render();
-                 setupInstallPrompt();
-                 registerServiceWorker();
-                 setInterval(syncCardsPeriodically, 5 * 60 * 1000);
-             })();
+              (async () => {
+                  state.cards = await loadCards();
+                  state.cards = dedupeCards(state.cards.map(ensureCard));
+                  persistCards();
+                  bindEvents();
+                  setActivePage(state.activePage);
+                render();
+                registerServiceWorker();
+                setInterval(syncCardsPeriodically, 5 * 60 * 1000);
+              })();
         })();
     </script>
 </body>
