@@ -1192,12 +1192,7 @@
                 <p id="detailAcceptedAt">Покажите карту кассиру</p>
             </div>
 
-            <div class="menu-panel screen-card">
-                <button type="button" class="menu-row" data-detail-row="note">
-                    <div>
-                        <strong>О карте</strong>
-                        <span id="detailNoteRow">Описание карты</span>
-                    </div>
+
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -1222,7 +1217,7 @@
                 </button>
             </div>
 
-            <button type="button" class="danger-btn" id="deleteCardButton">Удалить карту</button>
+            
         </div>
     </section>
 
@@ -1367,7 +1362,7 @@
                 detailNoteRow: document.getElementById("detailNoteRow"),
                 detailTermsRow: document.getElementById("detailTermsRow"),
                 detailContactsRow: document.getElementById("detailContactsRow"),
-                deleteCardButton: document.getElementById("deleteCardButton"),
+
                 toggleFavoriteButton: document.getElementById("toggleFavoriteButton"),
                 toast: document.getElementById("toast"),
                 toastText: document.getElementById("toastText"),
@@ -1864,23 +1859,15 @@
                 showToast("JSON экспортирован");
             }
 
-            function deleteSelectedCard() {
-                if (!state.selectedCardId) return;
-                state.cards = state.cards.filter((card) => card.id !== state.selectedCardId);
-                persistCards();
-                render();
-                closeDetail();
-                showToast("Карта удалена");
-            }
+
 
             function toggleSelectedFavorite() {
                 const card = state.cards.find((item) => item.id === state.selectedCardId);
                 if (!card) return;
                 card.favorite = !card.favorite;
                 persistCards();
-                render();
                 openDetail(card.id);
-                showToast(card.favorite ? "Добавлено в избранное" : "Убрано из избранного");
+                showToast(card.favorite ? "Добавлено в избранное" : "Убрано из избранное");
             }
 
             function handleDetailRow(event) {
@@ -2002,10 +1989,7 @@ function bindEvents() {
         closeDetail();
     });
 
-    // Detail view actions
-    document.getElementById("closeDetailButton").addEventListener("click", closeDetail);
-    document.getElementById("deleteCardButton").addEventListener("click", deleteSelectedCard);
-    document.getElementById("toggleFavoriteButton").addEventListener("click", toggleSelectedFavorite);
+
     document.querySelectorAll(".menu-row").forEach((row) => row.addEventListener("click", handleDetailRow));
 
     // PWA install/update
