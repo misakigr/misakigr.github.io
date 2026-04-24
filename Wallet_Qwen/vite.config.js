@@ -32,5 +32,5 @@ export default defineConfig({
       }
     })
   ],
-  base: '/Wallet/'
+  base: '/Wallet_Qwen/',  // ← текущее имя репозитория
 })
