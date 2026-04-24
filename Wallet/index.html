@@ -880,8 +880,8 @@
 
         .barcode-box svg,
         .barcode-box canvas {
-            max-width: 100%;
-            height: auto;
+            width: 260px;
+            height: 260px;
         }
 
         .barcode-number {
@@ -1332,7 +1332,7 @@
                 <div class="field-inline">
                     <div class="field">
                         <label for="cardNumber">Номер карты</label>
-                        <input id="cardNumber" name="number" type="text" placeholder="1234 5678 9012">
+                        <input id="cardNumber" name="number" type="text" placeholder="123456789012">
                     </div>
                     <div class="field">
                         <label for="cardType">Тип кода</label>
@@ -2027,12 +2027,17 @@
                 if (window.QRCode && window.QRCode.toCanvas) {
                     const canvas = document.createElement("canvas");
                     refs.barcodeBox.appendChild(canvas);
-                    window.QRCode.toCanvas(canvas, String(value || "wallet-card"), {
-                        width: 180,
-                        margin: 1,
+            
+                    const cleanValue = String(value || "wallet-card")
+                        .replace(/\s+/g, ''); // 🔥 УБИРАЕМ ПРОБЕЛЫ
+            
+                    window.QRCode.toCanvas(canvas, cleanValue, {
+                        width: 240,               // 🔥 больше размер
+                        margin: 4,                // 🔥 ОБЯЗАТЕЛЬНО (quiet zone)
+                        errorCorrectionLevel: 'M', // 🔥 стабильность
                         color: {
                             dark: "#000000",
-                            light: "#fbfbfc"
+                            light: "#FFFFFF"     // 🔥 чисто белый
                         }
                     }, function (error) {
                         if (error) {
@@ -2040,6 +2045,7 @@
                             fallbackQr(value);
                         }
                     });
+            
                 } else {
                     fallbackQr(value);
                 }
