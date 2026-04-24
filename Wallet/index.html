@@ -2025,19 +2025,28 @@
 
             function renderQrCode(value) {
                 if (window.QRCode && window.QRCode.toCanvas) {
+            
                     const canvas = document.createElement("canvas");
-                    refs.barcodeBox.appendChild(canvas);
             
                     const cleanValue = String(value || "wallet-card")
-                        .replace(/\s+/g, ''); // 🔥 УБИРАЕМ ПРОБЕЛЫ
+                        .replace(/\s+/g, '');
+            
+                    const wrapper = document.createElement("div");
+                    wrapper.style.background = "#FFFFFF";
+                    wrapper.style.padding = "16px";
+                    wrapper.style.display = "inline-block";
+                    wrapper.style.borderRadius = "16px";
+            
+                    wrapper.appendChild(canvas);
+                    refs.barcodeBox.appendChild(wrapper);
             
                     window.QRCode.toCanvas(canvas, cleanValue, {
-                        width: 240,               // 🔥 больше размер
-                        margin: 4,                // 🔥 ОБЯЗАТЕЛЬНО (quiet zone)
-                        errorCorrectionLevel: 'M', // 🔥 стабильность
+                        width: 260,
+                        margin: 4,
+                        errorCorrectionLevel: 'M',
                         color: {
                             dark: "#000000",
-                            light: "#FFFFFF"     // 🔥 чисто белый
+                            light: "#FFFFFF"
                         }
                     }, function (error) {
                         if (error) {
