@@ -1261,6 +1261,20 @@
                             </svg>
                         </button>
                     </div>
+                    <div id="cardView" style="
+                      position: fixed;
+                      inset: 0;
+                      background: #121826;
+                      display: none;
+                      align-items: center;
+                      justify-content: center;
+                      flex-direction: column;
+                      z-index: 999;
+                    ">
+                      <div id="cardTitle" style="margin-bottom: 20px; font-size: 24px;"></div>
+                      <div id="walletCode"></div>
+                      <div onclick="closeCard()" style="margin-top: 30px; cursor:pointer;">Закрыть</div>
+                    </div>                    
                 </section>
             </section>
         </main>
@@ -1492,6 +1506,7 @@
     <script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
         (function () {
+            cardElement.onclick = () => openCard(card);
             const STORAGE_KEY = "wallet.cards.v1";
             const LAST_PAGE_KEY = "wallet.page.v1";
             const SAMPLE_CARDS = [
@@ -1646,7 +1661,19 @@
                 clock: document.getElementById("clock"),
                 batteryLevel: document.getElementById("batteryLevel")
             };
-
+            function openCard(card) {
+                document.getElementById("cardView").style.display = "flex";
+                document.getElementById("cardTitle").innerText = card.name;
+            
+                renderWalletCode(
+                    document.getElementById("walletCode"),
+                    card.code
+                );
+            }
+            
+            function closeCard() {
+                document.getElementById("cardView").style.display = "none";
+            }
             function loadCards() {
                 try {
                     const raw = localStorage.getItem(STORAGE_KEY);
@@ -1693,7 +1720,80 @@
                 }
                 return cleaned;
             }
-
+            function detectCodeType(value) {
+                const clean = value.replace(/\s+/g, '');
+            
+                if (/^\d{13}$/.test(clean)) return "EAN13";
+                if (/^[A-Z0-9]+$/.test(clean) && clean.length > 8) return "CODE128";
+                if (clean.length > 40) return "PDF417";
+            
+                return "QR";
+            }
+            function renderWalletCode(container, value) {
+                container.innerHTML = "";
+            
+                const clean = String(value || "").replace(/\s+/g, '');
+                const type = detectCodeType(clean);
+            
+                const wrapper = document.createElement("div");
+                wrapper.style.background = "#FFFFFF";
+                wrapper.style.padding = "20px";
+                wrapper.style.borderRadius = "20px";
+                wrapper.style.display = "inline-block";
+            
+                if (type === "QR") {
+                    const canvas = document.createElement("canvas");
+            
+                    QRCode.toCanvas(canvas, clean, {
+                        width: 260,
+                        margin: 4,
+                        errorCorrectionLevel: 'M',
+                        color: {
+                            dark: "#000000",
+                            light: "#FFFFFF"
+                        }
+                    });
+            
+                    wrapper.appendChild(canvas);
+                }
+            
+                if (type === "CODE128" || type === "EAN13") {
+                    const svg = document.createElement("svg");
+            
+                    JsBarcode(svg, clean, {
+                        format: type,
+                        lineColor: "#000",
+                        width: 2,
+                        height: 120,
+                        displayValue: false,
+                        margin: 10
+                    });
+            
+                    wrapper.appendChild(svg);
+                }
+            
+                if (type === "PDF417") {
+                    const canvas = document.createElement("canvas");
+                    const barcode = PDF417.draw(clean);
+            
+                    canvas.width = barcode.width;
+                    canvas.height = barcode.height;
+            
+                    const ctx = canvas.getContext("2d");
+            
+                    for (let y = 0; y < barcode.height; y++) {
+                        for (let x = 0; x < barcode.width; x++) {
+                            ctx.fillStyle = barcode.bcode[y][x] ? "#000" : "#fff";
+                            ctx.fillRect(x, y, 1, 1);
+                        }
+                    }
+            
+                    wrapper.appendChild(canvas);
+                }
+            
+                container.appendChild(wrapper);
+            }
+            
             function normalizeType(type) {
                 const value = String(type || "").toUpperCase();
                 if (value === "QR" || value === "QRCODE") return "QR";
@@ -2392,5 +2492,8 @@
             registerServiceWorker();
         })();
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf417-generator/dist/pdf417.min.js"></script>
 </body>
 </html>
