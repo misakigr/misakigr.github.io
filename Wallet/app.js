@@ -7,78 +7,145 @@ const bgBlur = document.getElementById("bgBlur");
 const modal = document.getElementById("modal");
 const modalImg = document.getElementById("modalImg");
 
+// swipe state
+let currentIndex = 0;
+let startY = 0;
+let currentTranslate = 0;
+let prevTranslate = 0;
+let isDragging = false;
+let velocity = 0;
+let lastY = 0;
+let lastTime = 0;
+
 // load data
 fetch("cards.json")
   .then(res => res.json())
   .then(data => {
     cardsData = data.cards;
     renderCards();
-    initObserver();
+    setPositionByIndex();
+    updateActiveCard();
   });
 
-// render cards
+// render
 function renderCards() {
   cardsContainer.innerHTML = "";
 
-  cardsData.forEach((card, index) => {
+  cardsData.forEach((card) => {
     const div = document.createElement("div");
     div.className = "card";
 
-    div.innerHTML = `
-      <img src="${card.image}" alt="${card.title}" />
-    `;
+    div.innerHTML = `<img src="${card.image}" />`;
 
-    // tap → open fullscreen
     div.addEventListener("click", () => openModal(card));
 
     cardsContainer.appendChild(div);
   });
 }
 
-// blur + active card tracking (Apple Wallet style)
-function initObserver() {
-  const cards = document.querySelectorAll(".card");
+//
+// 🔥 TOUCH EVENTS
+//
+cardsContainer.addEventListener("touchstart", touchStart);
+cardsContainer.addEventListener("touchmove", touchMove);
+cardsContainer.addEventListener("touchend", touchEnd);
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
+function touchStart(e) {
+  isDragging = true;
+  startY = e.touches[0].clientY;
 
-          cards.forEach(c => c.classList.remove("active"));
-          entry.target.classList.add("active");
+  lastY = startY;
+  lastTime = Date.now();
+}
 
-          const img = entry.target.querySelector("img").src;
-          bgBlur.style.backgroundImage = `url(${img})`;
-        }
-      });
-    },
-    {
-      root: cardsContainer,
-      threshold: 0.6
-    }
-  );
+function touchMove(e) {
+  if (!isDragging) return;
 
-  cards.forEach(card => observer.observe(card));
+  const currentY = e.touches[0].clientY;
+  const delta = currentY - startY;
+
+  currentTranslate = prevTranslate + delta;
+
+  // velocity calc
+  const now = Date.now();
+  velocity = (currentY - lastY) / (now - lastTime);
+
+  lastY = currentY;
+  lastTime = now;
+
+  setTranslate(currentTranslate);
+}
+
+function touchEnd() {
+  isDragging = false;
+
+  // 🔥 решаем куда перейти
+  if (velocity < -0.5) {
+    currentIndex++;
+  } else if (velocity > 0.5) {
+    currentIndex--;
+  } else {
+    // fallback по позиции
+    const movedBy = currentTranslate - prevTranslate;
+
+    if (movedBy < -100) currentIndex++;
+    if (movedBy > 100) currentIndex--;
+  }
+
+  // ограничения
+  currentIndex = Math.max(0, Math.min(currentIndex, cardsData.length - 1));
+
+  setPositionByIndex();
+  updateActiveCard();
 }
 
 //
-// 🔥 ОБНОВЛЁННАЯ openModal()
-// теперь работает с объектом card
+// 📍 POSITION LOGIC
+//
+function setPositionByIndex() {
+  const cardHeight = 210; // высота + margin
+  currentTranslate = -currentIndex * cardHeight;
+
+  prevTranslate = currentTranslate;
+
+  // 🔥 плавная анимация
+  cardsContainer.style.transition = "transform 0.35s ease";
+  setTranslate(currentTranslate);
+
+  setTimeout(() => {
+    cardsContainer.style.transition = "none";
+  }, 350);
+}
+
+function setTranslate(y) {
+  cardsContainer.style.transform = `translateY(${y}px)`;
+}
+
+//
+// 🎯 ACTIVE CARD + BLUR
+//
+function updateActiveCard() {
+  const cards = document.querySelectorAll(".card");
+
+  cards.forEach((card, i) => {
+    card.classList.toggle("active", i === currentIndex);
+  });
+
+  const activeCard = cards[currentIndex];
+  if (activeCard) {
+    const img = activeCard.querySelector("img").src;
+    bgBlur.style.backgroundImage = `url(${img})`;
+  }
+}
+
+//
+// 📱 MODAL
 //
 function openModal(card) {
   modal.classList.remove("hidden");
-
-  // основная картинка
   modalImg.src = card.image;
-
-  // можно расширять дальше:
-  // например будущий Wallet UI:
-  // title, subtitle, barcode, qr
-
-  console.log("Opened card:", card);
 }
 
-// close modal
 modal.addEventListener("click", () => {
   modal.classList.add("hidden");
 });
