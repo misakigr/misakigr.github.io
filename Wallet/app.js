@@ -12,14 +12,15 @@ const state = {
   cards: [],
   position: 0,
   activeIndex: 0,
+  expanded: false,
   dragging: false,
+  dragMoved: false,
   dragAxis: null,
   pointerId: null,
   startX: 0,
   startY: 0,
   startPosition: 0,
-  samples: [],
-  expanded: false
+  samples: []
 };
 
 initialize();
@@ -62,33 +63,27 @@ async function loadCards() {
   const payload = await response.json();
   const rawCards = Array.isArray(payload.cards) ? payload.cards : [];
 
-  state.cards = rawCards
-    .map((card, index) => sanitizeCard(card, index))
-    .filter(Boolean);
+  state.cards = rawCards.map(sanitizeCard).filter(Boolean);
 
   if (!state.cards.length) {
     throw new Error("No valid cards found in cards.json");
   }
 }
 
-function sanitizeCard(rawCard, index) {
+function sanitizeCard(rawCard) {
   if (!rawCard || typeof rawCard !== "object") {
     return null;
   }
 
-  const id = String(rawCard.id || `card_${index + 1}`).trim();
+  const id = String(rawCard.id || "").trim();
   const title = String(rawCard.title || "Wallet Card").trim();
-  const image = typeof rawCard.image === "string" ? rawCard.image.trim() : "";
+  const image = String(rawCard.image || "").trim();
 
-  if (!image) {
+  if (!id || !image) {
     return null;
   }
 
-  return {
-    id,
-    title,
-    image
-  };
+  return { id, title, image };
 }
 
 function renderCards() {
@@ -113,18 +108,7 @@ function renderCards() {
     image.loading = "lazy";
     image.draggable = false;
 
-    const label = document.createElement("div");
-    label.className = "wallet-card__label";
-
-    const title = document.createElement("span");
-    title.textContent = card.title;
-
-    const id = document.createElement("span");
-    id.className = "wallet-card__id";
-    id.textContent = shortId(card.id);
-
-    label.append(title, id);
-    viewport.append(image, label);
+    viewport.append(image);
     cardElement.append(viewport);
     fragment.append(cardElement);
   });
@@ -143,44 +127,38 @@ function updateScene() {
 
   const spacing = getCardSpacing();
   const heights = getCardHeights();
-  const collapsedHeight = heights.collapsed;
-  const previewHeight = heights.preview;
-  const expandedHeight = heights.expanded;
   const cards = elements.cardsTrack.querySelectorAll(".wallet-card");
 
-  cards.forEach((card, index) => {
+  cards.forEach((cardElement, index) => {
     const offset = index - state.position;
     const distance = Math.abs(offset);
+    const focus = Math.max(0, 1 - distance);
     const x = offset * spacing;
-    const y = Math.pow(distance, 1.1) * 10;
+    const y = Math.pow(distance, 1.15) * 10;
 
-    let scale = Math.max(0.92, 1 - distance * 0.06);
-    let opacity = Math.max(0.5, 1 - distance * 0.25);
-    let blur = Math.max(0, (distance - 0.2) * 2.2);
+    let height;
+    let scale;
+    let opacity;
+    let blur;
 
     if (state.expanded) {
-      if (index === state.activeIndex) {
-        scale = 1;
-        opacity = 1;
-        blur = 0;
-      } else {
-        scale = 0.9;
-        opacity = 0;
-        blur = 4;
-      }
+      height = index === state.activeIndex ? heights.expanded : heights.collapsed;
+      scale = index === state.activeIndex ? 1 : 0.94;
+      opacity = index === state.activeIndex ? 1 : 0;
+      blur = index === state.activeIndex ? 0 : 5;
+    } else {
+      height = heights.collapsed + (heights.preview - heights.collapsed) * focus;
+      scale = Math.max(0.93, 1 - distance * 0.06);
+      opacity = Math.max(0.45, 1 - distance * 0.26);
+      blur = Math.max(0, (distance - 0.2) * 2.6);
     }
 
-    const focus = Math.max(0, 1 - distance);
-    const height = state.expanded
-      ? (index === state.activeIndex ? expandedHeight : collapsedHeight)
-      : collapsedHeight + (previewHeight - collapsedHeight) * focus;
-
-    card.style.transform = `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), 0) scale(${scale})`;
-    card.style.opacity = opacity.toFixed(3);
-    card.style.filter = `blur(${blur.toFixed(2)}px)`;
-    card.style.height = `${height.toFixed(2)}px`;
-    card.style.zIndex = String(1000 - Math.round(distance * 100));
-    card.classList.toggle("is-active", index === state.activeIndex);
+    cardElement.style.transform = `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), 0) scale(${scale})`;
+    cardElement.style.height = `${height.toFixed(2)}px`;
+    cardElement.style.opacity = opacity.toFixed(3);
+    cardElement.style.filter = `blur(${blur.toFixed(2)}px)`;
+    cardElement.style.zIndex = String(1000 - Math.round(distance * 100));
+    cardElement.classList.toggle("is-active", index === state.activeIndex);
   });
 
   const active = state.cards[state.activeIndex];
@@ -190,6 +168,7 @@ function updateScene() {
     : "Swipe left or right to switch cards";
   elements.activeIndex.textContent = `${state.activeIndex + 1}/${state.cards.length}`;
   elements.toggleExpandBtn.textContent = state.expanded ? "Collapse" : "Open Card";
+  elements.walletStage.classList.toggle("is-expanded", state.expanded);
 
   elements.ambientGlow.style.background =
     `radial-gradient(620px 380px at 50% 46%, rgba(255, 255, 255, 0.16), transparent 72%), url(${active.image}) center / cover no-repeat`;
@@ -205,6 +184,7 @@ function onPointerDown(event) {
   }
 
   state.dragging = true;
+  state.dragMoved = false;
   state.dragAxis = null;
   state.pointerId = event.pointerId;
   state.startX = event.clientX;
@@ -244,6 +224,7 @@ function onPointerMove(event) {
 
   if (state.dragAxis === "x" && !state.expanded) {
     event.preventDefault();
+    state.dragMoved = true;
     const rawPosition = state.startPosition - deltaX / getCardSpacing();
     state.position = applyEdgeResistance(rawPosition);
     recordSample(event.clientX);
@@ -282,9 +263,13 @@ function onPointerUp(event) {
 }
 
 function onCardClick(event) {
+  if (!state.cards.length || state.dragMoved) {
+    return;
+  }
+
   const cardElement = event.target.closest(".wallet-card");
 
-  if (!cardElement || !state.cards.length) {
+  if (!cardElement) {
     return;
   }
 
@@ -331,7 +316,6 @@ function onKeyDown(event) {
 
 function setExpanded(expanded) {
   state.expanded = expanded;
-  elements.walletStage.classList.toggle("is-expanded", expanded);
   updateScene();
 }
 
@@ -383,6 +367,25 @@ function getCardSpacing() {
   return clamp(width * 0.44, 140, 230);
 }
 
+function getCardHeights() {
+  const mobile = window.innerWidth <= 760;
+  const vh = window.innerHeight;
+
+  if (mobile) {
+    return {
+      collapsed: 106,
+      preview: 156,
+      expanded: Math.min(vh * 0.74, 620)
+    };
+  }
+
+  return {
+    collapsed: 118,
+    preview: 172,
+    expanded: Math.min(vh * 0.78, 700)
+  };
+}
+
 function showEmptyState(message) {
   elements.cardsTrack.innerHTML = `<div class="wallet-empty">${message}</div>`;
   elements.activeTitle.textContent = "Wallet";
@@ -391,33 +394,6 @@ function showEmptyState(message) {
   elements.toggleExpandBtn.disabled = true;
 }
 
-function shortId(value) {
-  if (value.length <= 10) {
-    return value;
-  }
-
-  return `${value.slice(0, 4)}...${value.slice(-4)}`;
-}
-
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
-}
-
-function getCardHeights() {
-  const mobile = window.innerWidth <= 760;
-  const vh = window.innerHeight;
-
-  if (mobile) {
-    return {
-      collapsed: 110,
-      preview: Math.min(vh * 0.64, 540),
-      expanded: Math.min(vh * 0.78, 640)
-    };
-  }
-
-  return {
-    collapsed: 128,
-    preview: Math.min(vh * 0.7, 660),
-    expanded: Math.min(vh * 0.82, 720)
-  };
 }

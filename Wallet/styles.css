@@ -5,8 +5,8 @@
   --page-bottom: #0a0b10;
   --card-width: min(94vw, 480px);
   --card-radius: 24px;
-  --collapsed-height: 128px;
-  --preview-height: min(70vh, 660px);
+  --collapsed-height: 118px;
+  --preview-height: 172px;
   --expanded-height: min(82vh, 720px);
 }
 
@@ -103,7 +103,7 @@ body {
 .wallet-stage {
   position: relative;
   min-height: 320px;
-  height: min(72vh, 760px);
+  height: min(74vh, 780px);
   overflow: hidden;
   touch-action: none;
   border-radius: 28px;
@@ -159,31 +159,10 @@ body {
   transform: scale(1.01);
 }
 
-.wallet-card__label {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  top: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #f8fbff;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4);
-  font: 700 16px/1.2 "Manrope", "Segoe UI", sans-serif;
-  pointer-events: none;
-  transition: opacity 280ms ease, transform 280ms ease;
-}
-
-.wallet-stage.is-expanded .wallet-card__label {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.wallet-card__id {
-  font: 500 11px/1.2 "Sora", "Segoe UI", sans-serif;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.82;
+.wallet-stage.is-expanded .wallet-card__image {
+  height: 100%;
+  object-fit: contain;
+  object-position: center top;
 }
 
 .wallet-footer {
@@ -235,8 +214,8 @@ body {
 @media (max-width: 760px) {
   :root {
     --card-width: min(94vw, 430px);
-    --collapsed-height: 110px;
-    --preview-height: min(64vh, 540px);
+    --collapsed-height: 106px;
+    --preview-height: 156px;
     --expanded-height: min(78vh, 640px);
   }
 
@@ -245,7 +224,7 @@ body {
   }
 
   .wallet-stage {
-    height: min(70vh, 700px);
+    height: min(76vh, 740px);
   }
 
   .wallet-footer {
