@@ -9,22 +9,41 @@ const modalImg = document.getElementById("modalImg");
 const menu = document.getElementById("menu");
 const menuButton = document.getElementById("menuButton");
 
+const toast = document.getElementById("toast");
+
+const refreshBtn = document.getElementById("refreshBtn");
+const clearCacheBtn = document.getElementById("clearCacheBtn");
+const versionLabel = document.getElementById("versionLabel");
+
 let currentIndex = 0;
 let startY = 0;
 let currentY = 0;
 
 const CARD_HEIGHT = 210;
+const CENTER_OFFSET = window.innerHeight / 2 - CARD_HEIGHT / 2;
 
-/* LOAD */
+/* 🔥 toast */
+function showToast(text) {
+  toast.innerText = text;
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 1500);
+}
+
+/* 📦 load */
 fetch("cards.json")
   .then(r => r.json())
   .then(data => {
     cardsData = data.cards;
+    versionLabel.innerText = "v" + data.version;
+
     render();
     update();
   });
 
-/* RENDER */
+/* 🧾 render */
 function render() {
   cardsContainer.innerHTML = "";
 
@@ -40,7 +59,7 @@ function render() {
   });
 }
 
-/* SWIPE */
+/* 📱 swipe */
 cardsContainer.addEventListener("touchstart", e => {
   startY = e.touches[0].clientY;
 });
@@ -58,11 +77,12 @@ cardsContainer.addEventListener("touchend", e => {
   update();
 });
 
-/* UPDATE */
+/* 🎯 update UI */
 function update() {
   cardsContainer.style.transition = "0.3s ease";
+
   cardsContainer.style.transform =
-    `translateY(${-currentIndex * CARD_HEIGHT}px)`;
+    `translateY(${-currentIndex * CARD_HEIGHT + CENTER_OFFSET}px)`;
 
   setTimeout(() => {
     cardsContainer.style.transition = "none";
@@ -84,7 +104,7 @@ function update() {
   }
 }
 
-/* MODAL */
+/* 🔳 modal */
 function openModal(card) {
   modal.classList.remove("hidden");
   modalImg.src = card.image;
@@ -92,7 +112,25 @@ function openModal(card) {
 
 modal.onclick = () => modal.classList.add("hidden");
 
-/* MENU */
+/* ⋯ menu */
 menuButton.onclick = () => {
   menu.classList.toggle("open");
+};
+
+/* 🔄 refresh */
+refreshBtn.onclick = () => {
+  location.reload();
+  showToast("Обновлено");
+};
+
+/* 🧹 clear cache */
+clearCacheBtn.onclick = async () => {
+  localStorage.clear();
+
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    keys.forEach(k => caches.delete(k));
+  }
+
+  showToast("Кэш удалён");
 };
