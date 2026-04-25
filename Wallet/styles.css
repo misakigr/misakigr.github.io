@@ -6,6 +6,7 @@
   --card-width: min(94vw, 480px);
   --card-radius: 24px;
   --collapsed-height: 128px;
+  --preview-height: min(70vh, 660px);
   --expanded-height: min(82vh, 720px);
 }
 
@@ -129,6 +130,10 @@ body {
   cursor: pointer;
 }
 
+.wallet-stage:not(.is-expanded) .wallet-card.is-active {
+  height: var(--preview-height);
+}
+
 .wallet-stage.is-expanded .wallet-card {
   height: var(--expanded-height);
 }
@@ -235,6 +240,7 @@ body {
   :root {
     --card-width: min(94vw, 430px);
     --collapsed-height: 110px;
+    --preview-height: min(64vh, 540px);
     --expanded-height: min(78vh, 640px);
   }
 
