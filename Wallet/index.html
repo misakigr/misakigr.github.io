@@ -10,20 +10,27 @@
 
 <body>
 
-  <!-- 🔵 BLUR BACKGROUND (как Apple Wallet) -->
+  <!-- 🔵 BLUR BACKGROUND -->
   <div class="bg-blur" id="bgBlur"></div>
 
-  <!-- 📱 MAIN WALLET -->
+  <!-- 📱 WALLET -->
   <div class="wallet-container">
-
-    <!-- 🧾 VERTICAL SCROLL STACK -->
     <div class="cards" id="cards"></div>
-
   </div>
 
-  <!-- 🔳 FULLSCREEN MODAL -->
+  <!-- 🔳 FULLSCREEN CARD -->
   <div class="modal hidden" id="modal">
     <img id="modalImg" />
+  </div>
+
+  <!-- ⋯ MENU BUTTON -->
+  <div class="menu-button" id="menuButton">⋯</div>
+
+  <!-- MENU PANEL -->
+  <div class="menu hidden" id="menu">
+    <button id="refreshBtn">🔄 Обновить</button>
+    <button id="clearCacheBtn">🧹 Очистить кэш</button>
+    <div class="version" id="versionLabel">Version</div>
   </div>
 
   <script src="app.js"></script>
