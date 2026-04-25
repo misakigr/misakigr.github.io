@@ -130,10 +130,6 @@ body {
   cursor: pointer;
 }
 
-.wallet-stage:not(.is-expanded) .wallet-card.is-active {
-  height: var(--preview-height);
-}
-
 .wallet-stage.is-expanded .wallet-card {
   height: var(--expanded-height);
 }

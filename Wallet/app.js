@@ -142,6 +142,9 @@ function updateScene() {
   state.activeIndex = clamp(Math.round(state.position), 0, maxIndex);
 
   const spacing = getCardSpacing();
+  const collapsedHeight = getCssPx("--collapsed-height", 110);
+  const previewHeight = getCssPx("--preview-height", collapsedHeight);
+  const expandedHeight = getCssPx("--expanded-height", previewHeight);
   const cards = elements.cardsTrack.querySelectorAll(".wallet-card");
 
   cards.forEach((card, index) => {
@@ -166,9 +169,15 @@ function updateScene() {
       }
     }
 
+    const focus = Math.max(0, 1 - distance);
+    const height = state.expanded
+      ? (index === state.activeIndex ? expandedHeight : collapsedHeight)
+      : collapsedHeight + (previewHeight - collapsedHeight) * focus;
+
     card.style.transform = `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), 0) scale(${scale})`;
     card.style.opacity = opacity.toFixed(3);
     card.style.filter = `blur(${blur.toFixed(2)}px)`;
+    card.style.height = `${height.toFixed(2)}px`;
     card.style.zIndex = String(1000 - Math.round(distance * 100));
     card.classList.toggle("is-active", index === state.activeIndex);
   });
@@ -391,4 +400,17 @@ function shortId(value) {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function getCssPx(variableName, fallback) {
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue(variableName)
+    .trim();
+  const parsed = Number.parseFloat(raw);
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return parsed;
 }
