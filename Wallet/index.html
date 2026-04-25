@@ -1,25 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Wallet</title>
-  <link rel="stylesheet" href="styles.css">
+
+  <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
 
-<div class="bg-blur" id="bgBlur"></div>
+  <!-- 🔵 BLUR BACKGROUND (как Apple Wallet) -->
+  <div class="bg-blur" id="bgBlur"></div>
 
-<div class="wallet-container">
+  <!-- 📱 MAIN WALLET -->
+  <div class="wallet-container">
 
-  <div class="cards" id="cards"></div>
+    <!-- 🧾 VERTICAL SCROLL STACK -->
+    <div class="cards" id="cards"></div>
 
-</div>
+  </div>
 
-<!-- FULLSCREEN MODAL -->
-<div class="modal hidden" id="modal">
-  <img id="modalImg" />
-</div>
+  <!-- 🔳 FULLSCREEN MODAL -->
+  <div class="modal hidden" id="modal">
+    <img id="modalImg" />
+  </div>
 
-<script src="app.js"></script>
+  <script src="app.js"></script>
+
 </body>
 </html>
