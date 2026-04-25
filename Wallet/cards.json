@@ -3,17 +3,17 @@
     {
       "id": "okey_card",
       "title": "O'KEY",
-      "image": "images/magnit.png"
+      "image": "images/okey_card.png"
     },
     {
-      "id": "okey_card_weekend",
-      "title": "O'KEY Weekend",
-      "image": "images/magnit.png"
+      "id": "lenta_card",
+      "title": "Lenta",
+      "image": "images/lenta_card.png"
     },
     {
-      "id": "okey_card_family",
-      "title": "O'KEY Family",
-      "image": "images/magnit.png"
+      "id": "perekrestok_card",
+      "title": "Perekrestok",
+      "image": "images/perekrestok_card.png"
     }
   ]
 }

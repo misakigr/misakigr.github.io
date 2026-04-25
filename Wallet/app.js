@@ -370,7 +370,7 @@ function applyEdgeResistance(position) {
 
 function getCardSpacing() {
   const width = elements.walletStage.clientWidth || window.innerWidth;
-  return clamp(width * 0.56, 180, 280);
+  return clamp(width * 0.44, 140, 230);
 }
 
 function showEmptyState(message) {

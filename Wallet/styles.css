@@ -3,10 +3,10 @@
   --page-top: #07080c;
   --page-mid: #0d121d;
   --page-bottom: #0a0b10;
-  --card-width: min(88vw, 390px);
+  --card-width: min(94vw, 480px);
   --card-radius: 24px;
-  --collapsed-height: 102px;
-  --expanded-height: min(74vh, 540px);
+  --collapsed-height: 128px;
+  --expanded-height: min(82vh, 720px);
 }
 
 * {
@@ -102,7 +102,7 @@ body {
 .wallet-stage {
   position: relative;
   min-height: 320px;
-  height: min(62vh, 580px);
+  height: min(72vh, 760px);
   overflow: hidden;
   touch-action: none;
   border-radius: 28px;
@@ -233,9 +233,9 @@ body {
 
 @media (max-width: 760px) {
   :root {
-    --card-width: min(90vw, 360px);
-    --collapsed-height: 92px;
-    --expanded-height: min(70vh, 500px);
+    --card-width: min(94vw, 430px);
+    --collapsed-height: 110px;
+    --expanded-height: min(78vh, 640px);
   }
 
   .wallet-app {
@@ -243,7 +243,7 @@ body {
   }
 
   .wallet-stage {
-    height: min(58vh, 500px);
+    height: min(70vh, 700px);
   }
 
   .wallet-footer {
