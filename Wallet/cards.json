@@ -6,16 +6,14 @@
       "title": "Apple Store",
       "subtitle": "Gift Card",
       "image": "images/card1.png",
-      "type": "qr",
-      "code": "https://apple.com"
+      "type": "qr"
     },
     {
       "id": "card_2",
       "title": "Transport",
       "subtitle": "Metro Pass",
       "image": "images/card2.png",
-      "type": "barcode",
-      "code": "METRO-1234-5678"
+      "type": "barcode"
     },
     {
       "id": "card_3",
