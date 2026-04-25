@@ -1,0 +1,71 @@
+{
+  "version": 2,
+  "cards": [
+    {
+      "id": "discount-magnit-001",
+      "type": "discount",
+      "title": "Magnit Plus",
+      "subtitle": "Discount Pass",
+      "barcode": "E7008000602698620",
+      "barcodeType": "code128",
+      "image": "images/magnit.png",
+      "bg": "bg/magnit.jpg",
+      "color": "#ef5a3c"
+    },
+    {
+      "id": "bank-spark-013",
+      "type": "bank",
+      "title": "Spark Debit",
+      "subtitle": "Daily account",
+      "barcode": "BANK-7731-4409-ALPHA",
+      "barcodeType": "qr",
+      "image": "",
+      "bg": "bg/bank.jpg",
+      "color": "#4f8df5"
+    },
+    {
+      "id": "id-airport-227",
+      "type": "id",
+      "title": "Airport ID",
+      "subtitle": "Terminal access",
+      "barcode": "IDT4-02X-91A9-SEG8",
+      "barcodeType": "qr",
+      "image": "",
+      "bg": "bg/id.jpg",
+      "color": "#2f8f99"
+    },
+    {
+      "id": "loyalty-cinema-814",
+      "type": "loyalty",
+      "title": "Cinema Club",
+      "subtitle": "Member rewards",
+      "barcode": "CC-814-9982-5566",
+      "barcodeType": "code128",
+      "image": "",
+      "bg": "bg/cinema.jpg",
+      "color": "#8a6cf2"
+    },
+    {
+      "id": "discount-grocer-332",
+      "type": "discount",
+      "title": "Fresh Cart",
+      "subtitle": "Weekend savings",
+      "barcode": "FCART3324401289",
+      "barcodeType": "code128",
+      "image": "",
+      "bg": "bg/fresh.jpg",
+      "color": "#3aa16a"
+    },
+    {
+      "id": "loyalty-airline-721",
+      "type": "loyalty",
+      "title": "BlueWing Miles",
+      "subtitle": "Gold traveler",
+      "barcode": "BW-721-GLD-TRAVEL",
+      "barcodeType": "qr",
+      "image": "",
+      "bg": "bg/airline.jpg",
+      "color": "#cc8d2f"
+    }
+  ]
+}
