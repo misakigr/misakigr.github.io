@@ -13,11 +13,17 @@ let startY = 0;
 let currentTranslate = 0;
 let prevTranslate = 0;
 let isDragging = false;
+
 let velocity = 0;
 let lastY = 0;
 let lastTime = 0;
 
-// load data
+// ⚙️ настройки
+const CARD_HEIGHT = 210; // подгони при необходимости
+
+//
+// 📦 LOAD DATA
+//
 fetch("cards.json")
   .then(res => res.json())
   .then(data => {
@@ -27,7 +33,9 @@ fetch("cards.json")
     updateActiveCard();
   });
 
-// render
+//
+// 🧾 RENDER
+//
 function renderCards() {
   cardsContainer.innerHTML = "";
 
@@ -35,7 +43,7 @@ function renderCards() {
     const div = document.createElement("div");
     div.className = "card";
 
-    div.innerHTML = `<img src="${card.image}" />`;
+    div.innerHTML = `<img src="${card.image}" alt="${card.title}" />`;
 
     div.addEventListener("click", () => openModal(card));
 
@@ -44,14 +52,15 @@ function renderCards() {
 }
 
 //
-// 🔥 TOUCH EVENTS
+// 🔥 TOUCH EVENTS (физика свайпа)
 //
-cardsContainer.addEventListener("touchstart", touchStart);
-cardsContainer.addEventListener("touchmove", touchMove);
+cardsContainer.addEventListener("touchstart", touchStart, { passive: true });
+cardsContainer.addEventListener("touchmove", touchMove, { passive: true });
 cardsContainer.addEventListener("touchend", touchEnd);
 
 function touchStart(e) {
   isDragging = true;
+
   startY = e.touches[0].clientY;
 
   lastY = startY;
@@ -66,9 +75,11 @@ function touchMove(e) {
 
   currentTranslate = prevTranslate + delta;
 
-  // velocity calc
+  // 📈 считаем скорость
   const now = Date.now();
-  velocity = (currentY - lastY) / (now - lastTime);
+  const timeDiff = now - lastTime || 1;
+
+  velocity = (currentY - lastY) / timeDiff;
 
   lastY = currentY;
   lastTime = now;
@@ -79,20 +90,19 @@ function touchMove(e) {
 function touchEnd() {
   isDragging = false;
 
-  // 🔥 решаем куда перейти
+  // 🔥 логика перелистывания
   if (velocity < -0.5) {
     currentIndex++;
   } else if (velocity > 0.5) {
     currentIndex--;
   } else {
-    // fallback по позиции
     const movedBy = currentTranslate - prevTranslate;
 
     if (movedBy < -100) currentIndex++;
     if (movedBy > 100) currentIndex--;
   }
 
-  // ограничения
+  // 📍 границы
   currentIndex = Math.max(0, Math.min(currentIndex, cardsData.length - 1));
 
   setPositionByIndex();
@@ -100,15 +110,13 @@ function touchEnd() {
 }
 
 //
-// 📍 POSITION LOGIC
+// 📍 POSITION
 //
 function setPositionByIndex() {
-  const cardHeight = 210; // высота + margin
-  currentTranslate = -currentIndex * cardHeight;
-
+  currentTranslate = -currentIndex * CARD_HEIGHT;
   prevTranslate = currentTranslate;
 
-  // 🔥 плавная анимация
+  // плавное "долетание"
   cardsContainer.style.transition = "transform 0.35s ease";
   setTranslate(currentTranslate);
 
@@ -122,15 +130,31 @@ function setTranslate(y) {
 }
 
 //
-// 🎯 ACTIVE CARD + BLUR
+// 🎯 DEPTH + ACTIVE CARD (ШАГ 2)
 //
 function updateActiveCard() {
   const cards = document.querySelectorAll(".card");
 
   cards.forEach((card, i) => {
+    const offset = i - currentIndex;
+    const absOffset = Math.abs(offset);
+
+    // 🔥 глубина
+    const scale = Math.max(1 - absOffset * 0.1, 0.7);
+    const opacity = Math.max(1 - absOffset * 0.3, 0);
+    const translateY = offset * 20;
+
+    card.style.transform = `
+      translateY(${translateY}px)
+      scale(${scale})
+    `;
+
+    card.style.opacity = opacity;
+
     card.classList.toggle("active", i === currentIndex);
   });
 
+  // 🔵 blur фон
   const activeCard = cards[currentIndex];
   if (activeCard) {
     const img = activeCard.querySelector("img").src;
@@ -139,7 +163,7 @@ function updateActiveCard() {
 }
 
 //
-// 📱 MODAL
+// 📱 MODAL (fullscreen)
 //
 function openModal(card) {
   modal.classList.remove("hidden");
