@@ -1,0 +1,266 @@
+/* ===== RESET ===== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* фон важен для glass эффекта */
+  background: radial-gradient(circle at 30% 30%, #1a1a1a, #000);
+  height: 100vh;
+  overflow: hidden;
+}
+
+
+/* ===== ОСНОВНОЙ ЭКРАН ===== */
+.wallet-screen {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+}
+
+
+/* ===== КНОПКА ⋯ ===== */
+.info-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+
+/* ===== СТЕК КАРТ ===== */
+.wallet-stack {
+  position: relative;
+  width: 320px;
+  height: 220px;
+  perspective: 1200px;
+}
+
+
+/* ===== КАРТА ===== */
+.wallet-card {
+  position: absolute;
+  width: 100%;
+  height: 200px;
+
+  border-radius: 28px;
+
+  /* glass */
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+
+  border: 1px solid rgba(255,255,255,0.18);
+
+  box-shadow:
+    0 20px 40px rgba(0,0,0,0.5),
+    inset 0 1px 1px rgba(255,255,255,0.25);
+
+  overflow: hidden;
+
+  transition:
+    transform 0.4s ease,
+    opacity 0.4s ease;
+
+  will-change: transform;
+}
+
+
+/* блик */
+.wallet-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    120deg,
+    rgba(255,255,255,0.25),
+    rgba(255,255,255,0.05) 40%,
+    transparent 60%
+  );
+}
+
+
+/* контент */
+.wallet-card-content {
+  height: 100%;
+  padding: 16px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+
+/* текст */
+.wallet-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.wallet-subtitle {
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+}
+
+
+/* ===== QR БЛОК ===== */
+.barcode-box {
+  width: 180px;
+  height: 180px;
+
+  background: white;
+  border-radius: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: auto;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.barcode-box img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  image-rendering: crisp-edges;
+}
+
+
+/* ===== ABOUT PANEL (iOS STYLE) ===== */
+.about-panel {
+  position: fixed;
+  inset: 0;
+
+  pointer-events: none;
+}
+
+
+/* затемнение */
+.about-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+
+/* сама панель */
+.about-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  background: rgba(30,30,30,0.9);
+  backdrop-filter: blur(30px);
+
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+
+  padding: 20px;
+
+  transform: translateY(100%);
+  transition: transform 0.4s ease;
+}
+
+
+/* активное состояние */
+.about-panel.active {
+  pointer-events: auto;
+}
+
+.about-panel.active .about-overlay {
+  opacity: 1;
+}
+
+.about-panel.active .about-content {
+  transform: translateY(0);
+}
+
+
+/* header */
+.about-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.about-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.about-close {
+  color: white;
+  cursor: pointer;
+}
+
+
+/* body */
+.about-body {
+  margin-top: 16px;
+}
+
+.about-text {
+  color: rgba(255,255,255,0.7);
+}
+
+.about-section {
+  margin-top: 12px;
+}
+
+.about-label {
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+}
+
+
+/* кнопки */
+.about-actions {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.about-actions button {
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+
+  background: rgba(255,255,255,0.1);
+  color: white;
+
+  cursor: pointer;
+}
