@@ -1,67 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Wallet</title>
-
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
 
-  <!-- основной экран -->
-  <div class="wallet-screen">
+<div class="bg-blur" id="bgBlur"></div>
 
-    <!-- кнопка меню (как в iOS) -->
-    <div class="info-button" onclick="openAbout()">⋯</div>
+<div class="wallet-container">
 
-    <!-- стек карт -->
-    <div class="wallet-stack" id="walletStack"></div>
+  <div class="cards" id="cards"></div>
 
-  </div>
+</div>
 
+<!-- FULLSCREEN MODAL -->
+<div class="modal hidden" id="modal">
+  <img id="modalImg" />
+</div>
 
-  <!-- ABOUT / SETTINGS (скрытая панель) -->
-  <div class="about-panel" id="aboutPanel">
-
-    <!-- затемнение фона -->
-    <div class="about-overlay" onclick="closeAbout()"></div>
-
-    <!-- сама панель -->
-    <div class="about-content">
-
-      <div class="about-header">
-        <div class="about-title">About</div>
-        <div class="about-close" onclick="closeAbout()">✕</div>
-      </div>
-
-      <div class="about-body">
-
-        <p class="about-text">
-          Wallet Viewer (GitHub sync)
-        </p>
-
-        <div class="about-section">
-          <div class="about-label">Data version</div>
-          <div id="dataVersion">—</div>
-        </div>
-
-        <div class="about-actions">
-          <button onclick="forceUpdate()">🔄 Обновить данные</button>
-          <button onclick="hardReset()">🧨 Сбросить кэш</button>
-        </div>
-
-      </div>
-
-    </div>
-  </div>
-
-
-  <!-- скрытый input для будущей загрузки QR -->
-  <input type="file" id="barcodeInput" accept="image/*" hidden />
-
-
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
