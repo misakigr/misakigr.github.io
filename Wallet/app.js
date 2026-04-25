@@ -2,43 +2,24 @@ const elements = {
   ambientGlow: document.getElementById("ambientGlow"),
   walletStage: document.getElementById("walletStage"),
   cardsTrack: document.getElementById("cardsTrack"),
-  walletDots: document.getElementById("walletDots"),
   activeTitle: document.getElementById("activeTitle"),
-  activeSubtitle: document.getElementById("activeSubtitle"),
-  activeType: document.getElementById("activeType"),
+  statusText: document.getElementById("statusText"),
   activeIndex: document.getElementById("activeIndex"),
-  openPassBtn: document.getElementById("openPassBtn"),
-  passModal: document.getElementById("passModal"),
-  passSheet: document.getElementById("passSheet"),
-  closePassBtn: document.getElementById("closePassBtn"),
-  modalMedia: document.getElementById("modalMedia"),
-  modalTitle: document.getElementById("modalTitle"),
-  modalSubtitle: document.getElementById("modalSubtitle"),
-  modalCode: document.getElementById("modalCode"),
-  modalCodeText: document.getElementById("modalCodeText")
+  toggleExpandBtn: document.getElementById("toggleExpandBtn")
 };
-
-const TYPE_LABELS = {
-  discount: "Discount",
-  bank: "Bank",
-  id: "ID",
-  loyalty: "Loyalty"
-};
-
-const ALLOWED_TYPES = new Set(["discount", "bank", "id", "loyalty"]);
-const ALLOWED_BARCODE_TYPES = new Set(["qr", "code128"]);
-const FALLBACK_COLORS = ["#4f8df5", "#ef5a3c", "#3aa16a", "#cc8d2f", "#2f8f99", "#8a6cf2"];
 
 const state = {
   cards: [],
   position: 0,
   activeIndex: 0,
   dragging: false,
-  dragMoved: false,
+  dragAxis: null,
   pointerId: null,
   startX: 0,
+  startY: 0,
   startPosition: 0,
-  samples: []
+  samples: [],
+  expanded: false
 };
 
 initialize();
@@ -49,7 +30,6 @@ async function initialize() {
   try {
     await loadCards();
     renderCards();
-    renderDots();
     updateScene();
   } catch (error) {
     console.error(error);
@@ -64,24 +44,12 @@ function bindEvents() {
   window.addEventListener("pointercancel", onPointerUp);
 
   elements.cardsTrack.addEventListener("click", onCardClick);
-  elements.openPassBtn.addEventListener("click", () => openPass(state.activeIndex));
-  elements.closePassBtn.addEventListener("click", closePass);
-
-  elements.passModal.addEventListener("click", event => {
-    if (event.target === elements.passModal) {
-      closePass();
-    }
-  });
-
-  window.addEventListener("resize", () => {
-    updateScene();
-
-    if (isModalOpen()) {
-      renderCode(state.cards[state.activeIndex]);
-    }
+  elements.toggleExpandBtn.addEventListener("click", () => {
+    setExpanded(!state.expanded);
   });
 
   window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("resize", updateScene);
 }
 
 async function loadCards() {
@@ -94,9 +62,11 @@ async function loadCards() {
   const payload = await response.json();
   const rawCards = Array.isArray(payload.cards) ? payload.cards : [];
 
-  state.cards = rawCards.map(sanitizeCard).filter(Boolean);
+  state.cards = rawCards
+    .map((card, index) => sanitizeCard(card, index))
+    .filter(Boolean);
 
-  if (state.cards.length === 0) {
+  if (!state.cards.length) {
     throw new Error("No valid cards found in cards.json");
   }
 }
@@ -106,36 +76,19 @@ function sanitizeCard(rawCard, index) {
     return null;
   }
 
-  const type = String(rawCard.type || "loyalty").toLowerCase();
-  const barcodeType = String(rawCard.barcodeType || "qr").toLowerCase();
+  const id = String(rawCard.id || `card_${index + 1}`).trim();
+  const title = String(rawCard.title || "Wallet Card").trim();
+  const image = typeof rawCard.image === "string" ? rawCard.image.trim() : "";
+
+  if (!image) {
+    return null;
+  }
 
   return {
-    id: String(rawCard.id || `card-${index + 1}`),
-    type: ALLOWED_TYPES.has(type) ? type : "loyalty",
-    title: String(rawCard.title || "Wallet Card"),
-    subtitle: String(rawCard.subtitle || "Pass"),
-    barcode: String(rawCard.barcode || rawCard.code || `CODE${index + 1}`),
-    barcodeType: ALLOWED_BARCODE_TYPES.has(barcodeType) ? barcodeType : "qr",
-    image: sanitizePath(rawCard.image),
-    bg: sanitizePath(rawCard.bg),
-    color: sanitizeColor(rawCard.color, index)
+    id,
+    title,
+    image
   };
-}
-
-function sanitizePath(value) {
-  if (typeof value !== "string") {
-    return "";
-  }
-
-  return value.trim();
-}
-
-function sanitizeColor(value, index) {
-  if (typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value.trim())) {
-    return value.trim();
-  }
-
-  return FALLBACK_COLORS[index % FALLBACK_COLORS.length];
 }
 
 function renderCards() {
@@ -148,96 +101,35 @@ function renderCards() {
     cardElement.className = "wallet-card";
     cardElement.dataset.index = String(index);
     cardElement.setAttribute("role", "listitem");
-    cardElement.setAttribute("aria-label", `${card.title}, ${card.subtitle}`);
-    cardElement.style.setProperty("--card-color", card.color);
+    cardElement.setAttribute("aria-label", card.title);
 
-    if (card.image) {
-      const image = document.createElement("img");
-      image.className = "wallet-card__image";
-      image.src = card.image;
-      image.alt = "";
-      image.loading = "lazy";
-      image.addEventListener("error", () => image.remove());
-      cardElement.appendChild(image);
-    }
+    const viewport = document.createElement("div");
+    viewport.className = "wallet-card__viewport";
 
-    const shine = document.createElement("div");
-    shine.className = "wallet-card__shine";
-    cardElement.appendChild(shine);
+    const image = document.createElement("img");
+    image.className = "wallet-card__image";
+    image.src = card.image;
+    image.alt = "";
+    image.loading = "lazy";
+    image.draggable = false;
 
-    const header = document.createElement("div");
-    header.className = "wallet-card__header";
+    const label = document.createElement("div");
+    label.className = "wallet-card__label";
 
-    const type = document.createElement("span");
-    type.className = "wallet-card__type";
-    type.textContent = TYPE_LABELS[card.type] || card.type;
+    const title = document.createElement("span");
+    title.textContent = card.title;
 
     const id = document.createElement("span");
     id.className = "wallet-card__id";
     id.textContent = shortId(card.id);
 
-    header.append(type, id);
-    cardElement.appendChild(header);
-
-    const content = document.createElement("div");
-    content.className = "wallet-card__content";
-
-    const title = document.createElement("h2");
-    title.className = "wallet-card__title";
-    title.textContent = card.title;
-
-    const subtitle = document.createElement("p");
-    subtitle.className = "wallet-card__subtitle";
-    subtitle.textContent = card.subtitle;
-
-    content.append(title, subtitle);
-    cardElement.appendChild(content);
-
-    const footer = document.createElement("div");
-    footer.className = "wallet-card__footer";
-
-    const barcodeLabel = document.createElement("span");
-    barcodeLabel.className = "wallet-card__barcode";
-    barcodeLabel.textContent = card.barcodeType === "qr" ? "QR PASS" : "CODE 128";
-
-    const indicator = document.createElement("span");
-    indicator.className = "wallet-card__indicator";
-
-    footer.append(barcodeLabel, indicator);
-    cardElement.appendChild(footer);
-
-    fragment.appendChild(cardElement);
+    label.append(title, id);
+    viewport.append(image, label);
+    cardElement.append(viewport);
+    fragment.append(cardElement);
   });
 
-  elements.cardsTrack.appendChild(fragment);
-}
-
-function renderDots() {
-  elements.walletDots.innerHTML = "";
-
-  const fragment = document.createDocumentFragment();
-
-  state.cards.forEach((_, index) => {
-    const dot = document.createElement("button");
-    dot.type = "button";
-    dot.className = "wallet-dot";
-    dot.dataset.index = String(index);
-    dot.setAttribute("aria-label", `Go to card ${index + 1}`);
-    dot.addEventListener("click", () => snapTo(index));
-    fragment.appendChild(dot);
-  });
-
-  elements.walletDots.appendChild(fragment);
-}
-
-function showEmptyState(message) {
-  elements.cardsTrack.innerHTML = `<div class="wallet-empty">${message}</div>`;
-  elements.walletDots.innerHTML = "";
-  elements.activeTitle.textContent = "Wallet";
-  elements.activeSubtitle.textContent = message;
-  elements.activeType.textContent = "--";
-  elements.activeIndex.textContent = "0/0";
-  elements.openPassBtn.disabled = true;
+  elements.cardsTrack.append(fragment);
 }
 
 function updateScene() {
@@ -247,63 +139,54 @@ function updateScene() {
 
   const maxIndex = state.cards.length - 1;
   state.position = clamp(state.position, 0, maxIndex);
-
-  const nextActive = clamp(Math.round(state.position), 0, maxIndex);
-  state.activeIndex = nextActive;
+  state.activeIndex = clamp(Math.round(state.position), 0, maxIndex);
 
   const spacing = getCardSpacing();
-  const cardElements = elements.cardsTrack.querySelectorAll(".wallet-card");
+  const cards = elements.cardsTrack.querySelectorAll(".wallet-card");
 
-  cardElements.forEach((cardElement, index) => {
+  cards.forEach((card, index) => {
     const offset = index - state.position;
     const distance = Math.abs(offset);
-
     const x = offset * spacing;
-    const y = Math.pow(distance, 1.15) * 14;
-    const scale = Math.max(0.78, 1 - distance * 0.1);
-    const opacity = Math.max(0.2, 1 - distance * 0.24);
-    const blur = Math.max(0, (distance - 0.1) * 2.8);
-    const rotate = offset * -4;
-    const z = 600 - Math.round(distance * 100);
+    const y = Math.pow(distance, 1.1) * 10;
 
-    cardElement.style.transform = `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), 0) scale(${scale}) rotateZ(${rotate}deg)`;
-    cardElement.style.opacity = opacity.toFixed(3);
-    cardElement.style.filter = `blur(${blur.toFixed(2)}px) saturate(${(1 - distance * 0.1).toFixed(2)})`;
-    cardElement.style.zIndex = String(z);
-    cardElement.classList.toggle("is-active", index === state.activeIndex);
+    let scale = Math.max(0.92, 1 - distance * 0.06);
+    let opacity = Math.max(0.5, 1 - distance * 0.25);
+    let blur = Math.max(0, (distance - 0.2) * 2.2);
+
+    if (state.expanded) {
+      if (index === state.activeIndex) {
+        scale = 1;
+        opacity = 1;
+        blur = 0;
+      } else {
+        scale = 0.9;
+        opacity = 0;
+        blur = 4;
+      }
+    }
+
+    card.style.transform = `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), 0) scale(${scale})`;
+    card.style.opacity = opacity.toFixed(3);
+    card.style.filter = `blur(${blur.toFixed(2)}px)`;
+    card.style.zIndex = String(1000 - Math.round(distance * 100));
+    card.classList.toggle("is-active", index === state.activeIndex);
   });
 
-  updateLabels();
-  updateDots();
-}
-
-function updateLabels() {
-  const activeCard = state.cards[state.activeIndex];
-
-  if (!activeCard) {
-    return;
-  }
-
-  elements.activeTitle.textContent = activeCard.title;
-  elements.activeSubtitle.textContent = activeCard.subtitle;
-  elements.activeType.textContent = TYPE_LABELS[activeCard.type] || activeCard.type;
+  const active = state.cards[state.activeIndex];
+  elements.activeTitle.textContent = active.title;
+  elements.statusText.textContent = state.expanded
+    ? "Swipe down to collapse"
+    : "Swipe left or right to switch cards";
   elements.activeIndex.textContent = `${state.activeIndex + 1}/${state.cards.length}`;
+  elements.toggleExpandBtn.textContent = state.expanded ? "Collapse" : "Open Card";
 
-  document.documentElement.style.setProperty("--active-color", activeCard.color);
-
-  elements.ambientGlow.style.filter = "blur(52px) saturate(1.35)";
-}
-
-function updateDots() {
-  const dots = elements.walletDots.querySelectorAll(".wallet-dot");
-
-  dots.forEach((dot, index) => {
-    dot.classList.toggle("is-active", index === state.activeIndex);
-  });
+  elements.ambientGlow.style.background =
+    `radial-gradient(620px 380px at 50% 46%, rgba(255, 255, 255, 0.16), transparent 72%), url(${active.image}) center / cover no-repeat`;
 }
 
 function onPointerDown(event) {
-  if (!state.cards.length || isModalOpen()) {
+  if (!state.cards.length) {
     return;
   }
 
@@ -312,9 +195,10 @@ function onPointerDown(event) {
   }
 
   state.dragging = true;
-  state.dragMoved = false;
+  state.dragAxis = null;
   state.pointerId = event.pointerId;
   state.startX = event.clientX;
+  state.startY = event.clientY;
   state.startPosition = state.position;
   state.samples = [];
 
@@ -337,19 +221,24 @@ function onPointerMove(event) {
     return;
   }
 
-  event.preventDefault();
-
   const deltaX = event.clientX - state.startX;
+  const deltaY = event.clientY - state.startY;
 
-  if (!state.dragMoved && Math.abs(deltaX) > 8) {
-    state.dragMoved = true;
+  if (!state.dragAxis) {
+    if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
+      state.dragAxis = Math.abs(deltaX) >= Math.abs(deltaY) ? "x" : "y";
+    } else {
+      return;
+    }
   }
 
-  const rawPosition = state.startPosition - deltaX / getCardSpacing();
-  state.position = applyEdgeResistance(rawPosition);
-
-  recordSample(event.clientX);
-  updateScene();
+  if (state.dragAxis === "x" && !state.expanded) {
+    event.preventDefault();
+    const rawPosition = state.startPosition - deltaX / getCardSpacing();
+    state.position = applyEdgeResistance(rawPosition);
+    recordSample(event.clientX);
+    updateScene();
+  }
 }
 
 function onPointerUp(event) {
@@ -361,36 +250,31 @@ function onPointerUp(event) {
     return;
   }
 
+  const deltaY = event.clientY - state.startY;
+
   state.dragging = false;
   elements.walletStage.classList.remove("is-dragging");
 
-  const maxIndex = state.cards.length - 1;
-  const velocity = estimateVelocity();
-  const projected = state.position - (velocity * 190) / getCardSpacing();
-
-  let target = clamp(Math.round(projected), 0, maxIndex);
-
-  if (Math.abs(velocity) < 0.05) {
-    target = clamp(Math.round(state.position), 0, maxIndex);
+  if (state.dragAxis === "x" && !state.expanded) {
+    const velocity = estimateVelocity();
+    const projected = state.position - (velocity * 180) / getCardSpacing();
+    snapTo(Math.round(projected));
+  } else if (state.dragAxis === "y") {
+    if (deltaY < -56) {
+      setExpanded(true);
+    } else if (deltaY > 56) {
+      setExpanded(false);
+    }
   }
 
-  if (!state.dragMoved) {
-    target = clamp(Math.round(state.startPosition), 0, maxIndex);
-  }
-
-  snapTo(target);
-  state.samples = [];
   state.pointerId = null;
+  state.samples = [];
 }
 
 function onCardClick(event) {
-  if (!state.cards.length || state.dragMoved) {
-    return;
-  }
-
   const cardElement = event.target.closest(".wallet-card");
 
-  if (!cardElement) {
+  if (!cardElement || !state.cards.length) {
     return;
   }
 
@@ -401,11 +285,12 @@ function onCardClick(event) {
   }
 
   if (index !== state.activeIndex) {
+    setExpanded(false);
     snapTo(index);
     return;
   }
 
-  openPass(index);
+  setExpanded(!state.expanded);
 }
 
 function onKeyDown(event) {
@@ -413,29 +298,31 @@ function onKeyDown(event) {
     return;
   }
 
-  if (event.key === "Escape" && isModalOpen()) {
-    closePass();
-    return;
-  }
-
-  if (isModalOpen()) {
-    return;
-  }
-
-  if (event.key === "ArrowLeft") {
+  if (event.key === "ArrowLeft" && !state.expanded) {
     event.preventDefault();
     snapTo(state.activeIndex - 1);
   }
 
-  if (event.key === "ArrowRight") {
+  if (event.key === "ArrowRight" && !state.expanded) {
     event.preventDefault();
     snapTo(state.activeIndex + 1);
   }
 
-  if (event.key === "Enter" || event.key === " ") {
+  if (event.key === "ArrowUp") {
     event.preventDefault();
-    openPass(state.activeIndex);
+    setExpanded(true);
   }
+
+  if (event.key === "ArrowDown" || event.key === "Escape") {
+    event.preventDefault();
+    setExpanded(false);
+  }
+}
+
+function setExpanded(expanded) {
+  state.expanded = expanded;
+  elements.walletStage.classList.toggle("is-expanded", expanded);
+  updateScene();
 }
 
 function snapTo(index) {
@@ -443,8 +330,7 @@ function snapTo(index) {
     return;
   }
 
-  const safeIndex = clamp(index, 0, state.cards.length - 1);
-  state.position = safeIndex;
+  state.position = clamp(index, 0, state.cards.length - 1);
   updateScene();
 }
 
@@ -452,7 +338,7 @@ function recordSample(x) {
   const now = performance.now();
   state.samples.push({ x, time: now });
 
-  while (state.samples.length > 2 && now - state.samples[0].time > 150) {
+  while (state.samples.length > 2 && now - state.samples[0].time > 140) {
     state.samples.shift();
   }
 }
@@ -464,9 +350,8 @@ function estimateVelocity() {
 
   const first = state.samples[0];
   const last = state.samples[state.samples.length - 1];
-  const duration = Math.max(1, last.time - first.time);
-
-  return (last.x - first.x) / duration;
+  const dt = Math.max(1, last.time - first.time);
+  return (last.x - first.x) / dt;
 }
 
 function applyEdgeResistance(position) {
@@ -485,162 +370,25 @@ function applyEdgeResistance(position) {
 
 function getCardSpacing() {
   const width = elements.walletStage.clientWidth || window.innerWidth;
-  return clamp(width * 0.55, 180, 260);
+  return clamp(width * 0.56, 180, 280);
 }
 
-function openPass(index) {
-  const card = state.cards[index];
-
-  if (!card) {
-    return;
-  }
-
-  elements.modalTitle.textContent = card.title;
-  elements.modalSubtitle.textContent = card.subtitle;
-  elements.modalCodeText.textContent = formatReadableCode(card);
-  elements.modalMedia.style.setProperty("--pass-color", card.color);
-  elements.modalMedia.innerHTML = "";
-
-  if (card.image) {
-    const image = document.createElement("img");
-    image.src = card.image;
-    image.alt = "";
-    image.loading = "lazy";
-    image.addEventListener("error", () => image.remove());
-    elements.modalMedia.appendChild(image);
-  }
-
-  renderCode(card);
-
-  if (typeof elements.passModal.showModal === "function") {
-    if (!elements.passModal.open) {
-      elements.passModal.showModal();
-    }
-  } else {
-    elements.passModal.setAttribute("open", "");
-  }
+function showEmptyState(message) {
+  elements.cardsTrack.innerHTML = `<div class="wallet-empty">${message}</div>`;
+  elements.activeTitle.textContent = "Wallet";
+  elements.statusText.textContent = message;
+  elements.activeIndex.textContent = "0/0";
+  elements.toggleExpandBtn.disabled = true;
 }
 
-function closePass() {
-  if (typeof elements.passModal.close === "function" && elements.passModal.open) {
-    elements.passModal.close();
-    return;
+function shortId(value) {
+  if (value.length <= 10) {
+    return value;
   }
 
-  elements.passModal.removeAttribute("open");
-}
-
-function isModalOpen() {
-  return elements.passModal.open || elements.passModal.hasAttribute("open");
-}
-
-function renderCode(card) {
-  if (!card) {
-    return;
-  }
-
-  if (card.barcodeType === "qr") {
-    renderQrCode(elements.modalCode, card.barcode);
-    return;
-  }
-
-  renderCode128(elements.modalCode, card.barcode);
-}
-
-function renderQrCode(canvas, value) {
-  const size = 220;
-  const dpr = setCanvasSize(canvas, size, size);
-
-  if (typeof window.QRious === "function") {
-    new window.QRious({
-      element: canvas,
-      value,
-      level: "H",
-      size: Math.round(size * dpr),
-      background: "#ffffff",
-      foreground: "#101217",
-      padding: 0
-    });
-    return;
-  }
-
-  drawFallback(canvas, `QR ${value}`);
-}
-
-function renderCode128(canvas, value) {
-  const width = 292;
-  const height = 108;
-  const dpr = setCanvasSize(canvas, width, height);
-
-  if (typeof window.JsBarcode === "function") {
-    try {
-      window.JsBarcode(canvas, value, {
-        format: "CODE128",
-        width: 1.9 * dpr,
-        height: 80 * dpr,
-        margin: 10 * dpr,
-        displayValue: false,
-        background: "#ffffff",
-        lineColor: "#101217"
-      });
-      return;
-    } catch (_error) {
-      drawFallback(canvas, value);
-      return;
-    }
-  }
-
-  drawFallback(canvas, value);
-}
-
-function setCanvasSize(canvas, cssWidth, cssHeight) {
-  const dpr = clamp(window.devicePixelRatio || 1, 1, 3);
-  canvas.style.width = `${cssWidth}px`;
-  canvas.style.height = `${cssHeight}px`;
-  canvas.width = Math.round(cssWidth * dpr);
-  canvas.height = Math.round(cssHeight * dpr);
-  return dpr;
-}
-
-function drawFallback(canvas, text) {
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    return;
-  }
-
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#0f1624";
-  ctx.font = `${Math.max(20, Math.round(canvas.height * 0.18))}px sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("Code", canvas.width / 2, canvas.height * 0.42);
-  ctx.font = `${Math.max(12, Math.round(canvas.height * 0.12))}px sans-serif`;
-  ctx.fillText(text.slice(0, 34), canvas.width / 2, canvas.height * 0.68);
-}
-
-function formatReadableCode(card) {
-  if (!card || !card.barcode) {
-    return "";
-  }
-
-  if (card.barcodeType === "qr") {
-    return card.barcode;
-  }
-
-  return card.barcode.replace(/(.{4})/g, "$1 ").trim();
-}
-
-function shortId(id) {
-  const normalized = String(id).replace(/[^a-z0-9]/gi, "").toUpperCase();
-  if (normalized.length <= 6) {
-    return normalized;
-  }
-
-  return normalized.slice(-6);
+  return `${value.slice(0, 4)}...${value.slice(-4)}`;
 }
 
 function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
+  return Math.min(max, Math.max(min, value));
 }

@@ -6,7 +6,7 @@
   <title>Wallet</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -18,41 +18,21 @@
 
   <main class="wallet-app" aria-live="polite">
     <header class="wallet-header">
-      <p class="wallet-header__kicker">Apple Wallet Style</p>
-      <h1 class="wallet-header__title" id="activeTitle">Loading passes...</h1>
-      <p class="wallet-header__subtitle" id="activeSubtitle">Preparing cards</p>
+      <p class="wallet-header__kicker">Wallet</p>
+      <h1 class="wallet-header__title" id="activeTitle">Loading cards...</h1>
+      <p class="wallet-header__subtitle" id="statusText">Swipe left or right</p>
     </header>
 
-    <section class="wallet-stage" id="walletStage" aria-label="Wallet cards">
+    <section class="wallet-stage is-collapsed" id="walletStage" aria-label="Wallet cards">
       <div class="cards-track" id="cardsTrack" role="list"></div>
     </section>
 
-    <nav class="wallet-dots" id="walletDots" aria-label="Card pager"></nav>
-
     <footer class="wallet-footer">
-      <div class="wallet-meta">
-        <span id="activeType">--</span>
-        <span id="activeIndex">0/0</span>
-      </div>
-      <button class="wallet-action" id="openPassBtn" type="button">Open Pass</button>
+      <span class="wallet-index" id="activeIndex">0/0</span>
+      <button class="wallet-action" id="toggleExpandBtn" type="button">Open Card</button>
     </footer>
   </main>
 
-  <dialog class="pass-modal" id="passModal">
-    <article class="pass-sheet" id="passSheet">
-      <button class="pass-close" id="closePassBtn" type="button" aria-label="Close pass">Close</button>
-      <div class="pass-sheet__media" id="modalMedia"></div>
-      <div class="pass-sheet__text">
-        <h2 id="modalTitle">Pass title</h2>
-        <p id="modalSubtitle">Pass subtitle</p>
-      </div>
-      <canvas class="pass-code" id="modalCode" width="320" height="160" aria-label="Pass code"></canvas>
-      <p class="pass-code-text" id="modalCodeText"></p>
-    </article>
-  </dialog>
-
-  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
