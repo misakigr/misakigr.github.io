@@ -142,9 +142,10 @@ function updateScene() {
   state.activeIndex = clamp(Math.round(state.position), 0, maxIndex);
 
   const spacing = getCardSpacing();
-  const collapsedHeight = getCssPx("--collapsed-height", 110);
-  const previewHeight = getCssPx("--preview-height", collapsedHeight);
-  const expandedHeight = getCssPx("--expanded-height", previewHeight);
+  const heights = getCardHeights();
+  const collapsedHeight = heights.collapsed;
+  const previewHeight = heights.preview;
+  const expandedHeight = heights.expanded;
   const cards = elements.cardsTrack.querySelectorAll(".wallet-card");
 
   cards.forEach((card, index) => {
@@ -402,15 +403,21 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-function getCssPx(variableName, fallback) {
-  const raw = getComputedStyle(document.documentElement)
-    .getPropertyValue(variableName)
-    .trim();
-  const parsed = Number.parseFloat(raw);
+function getCardHeights() {
+  const mobile = window.innerWidth <= 760;
+  const vh = window.innerHeight;
 
-  if (!Number.isFinite(parsed)) {
-    return fallback;
+  if (mobile) {
+    return {
+      collapsed: 110,
+      preview: Math.min(vh * 0.64, 540),
+      expanded: Math.min(vh * 0.78, 640)
+    };
   }
 
-  return parsed;
+  return {
+    collapsed: 128,
+    preview: Math.min(vh * 0.7, 660),
+    expanded: Math.min(vh * 0.82, 720)
+  };
 }
