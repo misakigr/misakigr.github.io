@@ -6,14 +6,16 @@
       "title": "Apple Store",
       "subtitle": "Gift Card",
       "image": "images/card1.png",
-      "type": "qr"
+      "type": "qr",
+      "code": "https://apple.com"
     },
     {
       "id": "card_2",
       "title": "Transport",
       "subtitle": "Metro Pass",
       "image": "images/card2.png",
-      "type": "barcode"
+      "type": "barcode",
+      "code": "METRO-1234-5678"
     },
     {
       "id": "card_3",
@@ -22,8 +24,7 @@
       "image": "images/card3.png",
       "type": "image"
     },
-	{
-
+    {
       "id": "magnit_1",
       "title": "Магнит",
       "subtitle": "Скидочная карта",
