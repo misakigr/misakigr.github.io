@@ -457,11 +457,95 @@
             opacity: 0.9;
         }
 
-        .wallet-card .number {
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            margin-top: 4px;
+            .wallet-card .number {
+                font-size: 15px;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                margin-top: 4px;
+            }
+
+        .wallet-card .favorite-btn {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2;
+            padding: 0;
+        }
+
+        .wallet-card .favorite-btn:active {
+            transform: scale(0.85);
+        }
+
+        .wallet-card .favorite-btn svg {
+            width: 20px;
+            height: 20px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: color 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .wallet-card .favorite-btn.active svg {
+            color: #ffd747;
+            fill: #ffd747;
+            stroke: #ffd747;
+            transform: scale(1.1);
+        }
+
+        .card-mini .favorite-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease;
+            z-index: 2;
+            padding: 0;
+        }
+
+        .card-mini .favorite-btn:active {
+            transform: scale(0.82);
+        }
+
+        .card-mini .favorite-btn svg {
+            width: 14px;
+            height: 14px;
+            color: rgba(255, 255, 255, 0.55);
+            transition: color 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .card-mini .favorite-btn.active svg {
+            color: #ffd747;
+            fill: #ffd747;
+            stroke: #ffd747;
+            transform: scale(1.15);
         }
 
         .empty-state {
@@ -1869,10 +1953,24 @@
                 button.className = "card-mini";
                 button.style.background = cardGradient(card.color, card.name);
                 button.innerHTML = [
+                    '<button type="button" class="favorite-btn" data-card-id="' + escapeHtml(card.id) + '" aria-label="Избранное">',
+                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+                    '</button>',
                     '<span class="brand-mini">' + escapeHtml(card.name) + "</span>",
                     "<span>" + escapeHtml(card.type === "QR" ? "QR-код" : "Штрихкод") + "</span>"
                 ].join("");
-                button.addEventListener("click", () => openDetail(card.id));
+                button.addEventListener("click", (e) => {
+                    if (e.target.closest('.favorite-btn')) return;
+                    openDetail(card.id);
+                });
+                const favBtn = button.querySelector('.favorite-btn');
+                if (favBtn) {
+                    favBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        toggleCardFavorite(card.id);
+                    });
+                    if (card.favorite) favBtn.classList.add('active');
+                }
                 return button;
             }
 
@@ -1883,12 +1981,27 @@
                 button.style.background = cardGradient(card.color, card.name);
                 button.innerHTML = [
                     '<div class="brand-mark">' + escapeHtml(card.name) + "</div>",
+                    '<button type="button" class="favorite-btn" data-card-id="' + escapeHtml(card.id) + '" aria-label="Избранное">',
+                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+                    '</button>',
                     '<div class="card-bottom">',
                     '<div class="caption">' + escapeHtml(card.favorite ? "Часто используете" : card.type) + "</div>",
                     '<div class="number">' + escapeHtml(shortCardNumber(card.number, card.type)) + "</div>",
                     "</div>"
                 ].join("");
-                button.addEventListener("click", () => openDetail(card.id));
+                button.addEventListener("click", (e) => {
+                    if (e.target.closest('.favorite-btn')) return;
+                    openDetail(card.id);
+                });
+                // Ensure the favorite button has its own click handler
+                const favBtn = button.querySelector('.favorite-btn');
+                if (favBtn) {
+                    favBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        toggleCardFavorite(card.id);
+                    });
+                    if (card.favorite) favBtn.classList.add('active');
+                }
                 return button;
             }
 
@@ -1990,6 +2103,22 @@
                 refs.detailTermsRow.textContent = trimText(card.terms || "Условия не указаны", 64);
                 refs.detailContactsRow.textContent = trimText(card.contacts || "Контакты не указаны", 64);
                 refs.barcodeNumber.textContent = formatCardNumber(card);
+
+                // Update favorite button state in detail view
+                const favBtn = document.getElementById("toggleFavoriteButton");
+                if (favBtn) {
+                    favBtn.classList.toggle("active", card.favorite);
+                    const svg = favBtn.querySelector('svg');
+                    if (svg) {
+                        if (card.favorite) {
+                            svg.setAttribute('fill', '#ffd747');
+                            svg.setAttribute('stroke', '#ffd747');
+                        } else {
+                            svg.setAttribute('fill', 'none');
+                            svg.setAttribute('stroke', 'currentColor');
+                        }
+                    }
+                }
 
                 renderBarcode(card);
                 refs.detailOverlay.classList.add("visible");
@@ -2113,6 +2242,15 @@
                 render();
                 openDetail(card.id);
                 showToast(card.favorite ? "Добавлено в избранное" : "Убрано из избранного");
+            }
+
+            function toggleCardFavorite(cardId) {
+                const card = state.cards.find((item) => item.id === cardId);
+                if (!card) return;
+                card.favorite = !card.favorite;
+                persistCards();
+                renderHome();
+                renderStats();
             }
 
             function handleDetailRow(event) {
