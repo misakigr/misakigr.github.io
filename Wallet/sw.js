@@ -1,11 +1,24 @@
-const CACHE_NAME = "wallet-pwa-v1";
+const CACHE_NAME = "wallet-pwa-v2";
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
   "./sw.js",
   "./icons/icon-192.svg",
-  "./icons/icon-512.svg"
+  "./icons/icon-512.svg",
+  "./fonts/Manrope-Cyrillic.woff2",
+  "./fonts/Manrope-Latin.woff2",
+  "./fonts/SpaceGrotesk-500.woff2",
+  "./fonts/SpaceGrotesk-700.woff2",
+  "./libs/html5-qrcode.min.js",
+  "./barcodes/lenta.svg",
+  "./barcodes/okey.svg",
+  "./barcodes/x5.svg",
+  "./barcodes/mvideo.svg",
+  "./barcodes/auchan.svg",
+  "./barcodes/health.svg",
+  "./barcodes/placeholder.svg",
+  "./barcodes/data.json"
 ];
 
 self.addEventListener("install", (event) => {
