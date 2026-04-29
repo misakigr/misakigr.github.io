@@ -1,0 +1,38 @@
+[
+  {
+    "id": "sample-lenta",
+    "name": "Лента",
+    "barcodeImage": "barcodes/lenta.png",
+    "color": "#184ea0"
+  },
+  {
+    "id": "sample-okey",
+    "name": "О'КЕЙ",
+    "barcodeImage": "barcodes/okey.png",
+    "color": "#d92517"
+  },
+  {
+    "id": "sample-x5",
+    "name": "X5 Клуб",
+    "barcodeImage": "barcodes/x5.png",
+    "color": "#68bf3f"
+  },
+  {
+    "id": "sample-mvideo",
+    "name": "М.Видео",
+    "barcodeImage": "barcodes/mvideo.png",
+    "color": "#ef2020"
+  },
+  {
+    "id": "sample-auchan",
+    "name": "Ашан",
+    "barcodeImage": "barcodes/auchan.png",
+    "color": "#ffbf00"
+  },
+  {
+    "id": "sample-health",
+    "name": "О здоровье",
+    "barcodeImage": "barcodes/health.png",
+    "color": "#e83b43"
+  }
+]

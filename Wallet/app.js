@@ -1,79 +1,84 @@
-const elements = {
-  ambientGlow: document.getElementById("ambientGlow"),
-  walletStage: document.getElementById("walletStage"),
-  cardsTrack: document.getElementById("cardsTrack"),
-  activeTitle: document.getElementById("activeTitle"),
-  statusText: document.getElementById("statusText"),
-  activeIndex: document.getElementById("activeIndex"),
-  toggleExpandBtn: document.getElementById("toggleExpandBtn")
-};
+"use strict";
+
+const DATA_URL = "barcodes/data.json";
+const PLACEHOLDER_IMAGE = "barcodes/placeholder.png";
+const FAVORITES_KEY = "favorites";
 
 const state = {
   cards: [],
-  position: 0,
-  activeIndex: 0,
-  expanded: false,
-  dragging: false,
-  dragMoved: false,
-  dragAxis: null,
-  pointerId: null,
-  startX: 0,
-  startY: 0,
-  startPosition: 0,
-  samples: []
+  favorites: new Set(),
+  activePage: "home",
+  search: "",
+  selectedCardId: null,
+  installPrompt: null,
+  swRegistration: null
 };
 
-initialize();
+window.walletState = state;
 
-async function initialize() {
+const refs = {
+  pages: document.getElementById("pages"),
+  searchInput: document.getElementById("searchInput"),
+  favoritesGrid: document.getElementById("favoritesGrid"),
+  walletGrid: document.getElementById("walletGrid"),
+  catalogGrid: document.getElementById("catalogGrid"),
+  emptyState: document.getElementById("emptyState"),
+  favoriteCountLabel: document.getElementById("favoriteCountLabel"),
+  totalCardsLabel: document.getElementById("totalCardsLabel"),
+  installBanner: document.getElementById("installBanner"),
+  installButton: document.getElementById("installButton"),
+  updateBanner: document.getElementById("updateBanner"),
+  updateButton: document.getElementById("updateButton"),
+  offlineBanner: document.getElementById("offlineBanner"),
+  offlineDismiss: document.getElementById("offlineDismiss"),
+  detailOverlay: document.getElementById("detailOverlay"),
+  detailTitle: document.getElementById("detailTitle"),
+  detailHero: document.getElementById("detailHero"),
+  detailBrand: document.getElementById("detailBrand"),
+  barcodeBox: document.getElementById("barcodeBox"),
+  closeDetailButton: document.getElementById("closeDetailButton"),
+  toggleFavoriteButton: document.getElementById("toggleFavoriteButton"),
+  quickFavorites: document.getElementById("quickFavorites"),
+  toast: document.getElementById("toast")
+};
+
+document.addEventListener("DOMContentLoaded", initApp);
+
+async function initApp() {
   bindEvents();
+  loadFavorites();
+  setupInstallPrompt();
+  registerServiceWorker();
+  updateNetworkStatus();
 
   try {
-    await loadCards();
-    renderCards();
-    updateScene();
+    state.cards = await loadCards();
+    console.log("state.cards[0]", state.cards[0]);
+    render();
   } catch (error) {
-    console.error(error);
-    showEmptyState("Could not load cards");
+    console.error("[Wallet] Failed to initialize", error);
+    showEmptyState("Не удалось загрузить карты.");
   }
 }
 
-function bindEvents() {
-  elements.walletStage.addEventListener("pointerdown", onPointerDown);
-  window.addEventListener("pointermove", onPointerMove, { passive: false });
-  window.addEventListener("pointerup", onPointerUp);
-  window.addEventListener("pointercancel", onPointerUp);
-
-  elements.cardsTrack.addEventListener("click", onCardClick);
-  elements.toggleExpandBtn.addEventListener("click", () => {
-    setExpanded(!state.expanded);
-  });
-
-  window.addEventListener("keydown", onKeyDown);
-
-  // Debounce resize
-  let resizeTimeout;
-  window.addEventListener("resize", () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(updateScene, 100);
-  });
-}
-
 async function loadCards() {
-  const response = await fetch("barcodes/data.json", { cache: "no-store" });
-
+  const response = await fetch(DATA_URL);
   if (!response.ok) {
     throw new Error(`data.json request failed with status ${response.status}`);
   }
 
   const payload = await response.json();
   const rawCards = Array.isArray(payload) ? payload : [];
+  const cards = rawCards.map(sanitizeCard).filter(Boolean);
 
-  state.cards = rawCards.map(sanitizeCard).filter(Boolean);
-
-  if (!state.cards.length) {
+  if (!cards.length) {
     throw new Error("No valid cards found in data.json");
   }
+
+  return cards.map((card) => ({
+    ...card,
+    favorite: state.favorites.has(card.id)
+  }));
 }
 
 function sanitizeCard(rawCard) {
@@ -82,354 +87,403 @@ function sanitizeCard(rawCard) {
   }
 
   const id = String(rawCard.id || "").trim();
-  const title = String(rawCard.name || "").trim();
-  const image = String(rawCard.barcodeImage || "").trim();
-  const color = String(rawCard.color || "").trim();
+  const name = String(rawCard.name || "").trim();
+  const barcodeImage = String(rawCard.barcodeImage || "").trim();
+  const color = String(rawCard.color || "#2563eb").trim();
 
-  if (!id || !image) {
-    console.warn("Invalid card:", rawCard);
+  if (!id || !name || !barcodeImage) {
+    console.warn("[Wallet] Invalid card skipped", rawCard);
     return null;
   }
 
-  return { id, title, image, color };
+  return { id, name, barcodeImage, color };
 }
 
-function renderCards() {
-  elements.cardsTrack.innerHTML = "";
-
-  const fragment = document.createDocumentFragment();
-
-  state.cards.forEach((card, index) => {
-    const cardElement = document.createElement("article");
-    cardElement.className = "wallet-card";
-    cardElement.dataset.index = String(index);
-    cardElement.setAttribute("role", "listitem");
-    cardElement.setAttribute("aria-label", card.title);
-
-    if (card.color) {
-      cardElement.style.setProperty("--card-color", card.color);
-    }
-
-    const viewport = document.createElement("div");
-    viewport.className = "wallet-card__viewport";
-
-    const image = document.createElement("img");
-    image.className = "wallet-card__image";
-    image.src = card.image;
-    image.alt = card.title;
-    image.loading = "lazy";
-    image.draggable = false;
-
-    image.onerror = () => {
-      console.warn(`Failed to load image: ${card.image}`);
-      image.src = "barcodes/placeholder.svg";
-      image.alt = "Image not available";
-    };
-
-    viewport.append(image);
-    cardElement.append(viewport);
-    fragment.append(cardElement);
+function bindEvents() {
+  document.querySelectorAll("[data-nav]").forEach((button) => {
+    button.addEventListener("click", () => setActivePage(button.dataset.nav));
   });
 
-  elements.cardsTrack.append(fragment);
-}
-
-function updateScene() {
-  if (!state.cards.length) {
-    return;
-  }
-
-  const maxIndex = state.cards.length - 1;
-  state.position = clamp(state.position, 0, maxIndex);
-  state.activeIndex = clamp(Math.round(state.position), 0, maxIndex);
-
-  const spacing = getCardSpacing();
-  const heights = getCardHeights();
-  const cards = elements.cardsTrack.querySelectorAll(".wallet-card");
-
-  cards.forEach((cardElement, index) => {
-    const offset = index - state.position;
-    const distance = Math.abs(offset);
-    const focus = Math.max(0, 1 - distance);
-    const x = offset * spacing;
-    const y = Math.pow(distance, 1.15) * 10;
-
-    let height;
-    let scale;
-    let opacity;
-    let blur;
-
-    if (state.expanded) {
-      height = index === state.activeIndex ? heights.expanded : heights.collapsed;
-      scale = index === state.activeIndex ? 1 : 0.94;
-      opacity = index === state.activeIndex ? 1 : 0;
-      blur = index === state.activeIndex ? 0 : 5;
-    } else {
-      height = heights.collapsed + (heights.preview - heights.collapsed) * focus;
-      scale = Math.max(0.93, 1 - distance * 0.06);
-      opacity = Math.max(0.45, 1 - distance * 0.26);
-      blur = Math.max(0, (distance - 0.2) * 2.6);
-    }
-
-    cardElement.style.transform = `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), 0) scale(${scale})`;
-    cardElement.style.height = `${height.toFixed(2)}px`;
-    cardElement.style.opacity = opacity.toFixed(3);
-    cardElement.style.filter = `blur(${blur.toFixed(2)}px)`;
-    cardElement.style.zIndex = String(1000 - Math.round(distance * 100));
-    cardElement.classList.toggle("is-active", index === state.activeIndex);
+  refs.searchInput.addEventListener("input", (event) => {
+    state.search = event.target.value;
+    renderHome();
   });
 
-  const active = state.cards[state.activeIndex];
-  elements.activeTitle.textContent = active.title;
-  elements.statusText.textContent = state.expanded
-    ? "Swipe down to collapse"
-    : "Swipe left or right to switch cards";
-  elements.activeIndex.textContent = `${state.activeIndex + 1}/${state.cards.length}`;
-  elements.toggleExpandBtn.textContent = state.expanded ? "Collapse" : "Open Card";
-  elements.walletStage.classList.toggle("is-expanded", state.expanded);
+  refs.quickFavorites.addEventListener("click", () => {
+    state.search = "";
+    refs.searchInput.value = "";
+    setActivePage("home");
+    refs.favoritesGrid.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 
-  // Safe glow background
-  if (active?.image) {
-    const img = new Image();
-    img.onload = () => {
-      elements.ambientGlow.style.background =
-        `radial-gradient(620px 380px at 50% 46%, rgba(255, 255, 255, 0.16), transparent 72%), url(${active.image}) center / cover no-repeat`;
-    };
-    img.onerror = () => {
-      elements.ambientGlow.style.background =
-        `radial-gradient(620px 380px at 50% 46%, rgba(255, 255, 255, 0.16), transparent 72%), ${active.color || '#222'}`;
-    };
-    img.src = active.image;
-  } else {
-    elements.ambientGlow.style.background =
-      `radial-gradient(620px 380px at 50% 46%, rgba(255, 255, 255, 0.16), transparent 72%), ${active.color || '#222'}`;
-  }
+  refs.closeDetailButton.addEventListener("click", closeDetail);
+  refs.toggleFavoriteButton.addEventListener("click", () => {
+    if (state.selectedCardId) {
+      toggleFavorite(state.selectedCardId);
+      updateDetailFavorite();
+    }
+  });
+
+  refs.detailOverlay.addEventListener("click", (event) => {
+    if (event.target === refs.detailOverlay) {
+      closeDetail();
+    }
+  });
+
+  refs.installButton.addEventListener("click", triggerInstall);
+  refs.updateButton.addEventListener("click", applyUpdate);
+  refs.offlineDismiss.addEventListener("click", () => hide(refs.offlineBanner));
+
+  window.addEventListener("online", updateNetworkStatus);
+  window.addEventListener("offline", updateNetworkStatus);
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeDetail();
+    }
+  });
 }
 
-function onPointerDown(event) {
-  if (!state.cards.length) {
-    return;
-  }
-
-  if (event.pointerType === "mouse" && event.button !== 0) {
-    return;
-  }
-
-  state.dragging = true;
-  state.dragMoved = false;
-  state.dragAxis = null;
-  state.pointerId = event.pointerId;
-  state.startX = event.clientX;
-  state.startY = event.clientY;
-  state.startPosition = state.position;
-  state.samples = [];
-
-  recordSample(event.clientX);
-  elements.walletStage.classList.add("is-dragging");
-
-  try {
-    elements.walletStage.setPointerCapture(event.pointerId);
-  } catch (_error) {
-    state.pointerId = null;
-  }
+function render() {
+  renderPages();
+  renderHome();
+  renderCatalog();
 }
 
-function onPointerMove(event) {
-  if (!state.dragging) {
-    return;
-  }
+function renderPages() {
+  document.querySelectorAll(".page").forEach((page) => {
+    page.classList.toggle("is-active", page.dataset.page === state.activePage);
+  });
+  document.querySelectorAll("[data-nav]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.nav === state.activePage);
+  });
+}
 
-  if (state.pointerId !== null && event.pointerId !== state.pointerId) {
-    return;
-  }
+function renderHome() {
+  const cards = getFilteredCards();
+  const favorites = cards.filter((card) => card.favorite);
 
-  const deltaX = event.clientX - state.startX;
-  const deltaY = event.clientY - state.startY;
+  refs.favoriteCountLabel.textContent = String(favorites.length);
+  refs.totalCardsLabel.textContent = String(cards.length);
+  refs.emptyState.hidden = cards.length > 0;
 
-  if (!state.dragAxis) {
-    if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
-      state.dragAxis = Math.abs(deltaX) >= Math.abs(deltaY) ? "x" : "y";
-    } else {
+  replaceChildren(refs.favoritesGrid, favorites.length
+    ? favorites.map((card) => createMiniCard(card))
+    : [createMessage("Нет избранных карт")]
+  );
+
+  replaceChildren(refs.walletGrid, cards.map((card) => createWalletCard(card)));
+}
+
+function renderCatalog() {
+  const items = state.cards.map((card) => {
+    const node = document.createElement("button");
+    node.type = "button";
+    node.className = "catalog-item";
+    node.style.setProperty("--card-color", card.color);
+    node.innerHTML = `
+      <span>${escapeHtml(card.name)}</span>
+      <small>${escapeHtml(card.barcodeImage)}</small>
+    `;
+    node.addEventListener("click", () => openDetail(card.id));
+    return node;
+  });
+
+  replaceChildren(refs.catalogGrid, items);
+}
+
+function createWalletCard(card) {
+  const button = document.createElement("article");
+  button.className = "wallet-card";
+  button.tabIndex = 0;
+  button.setAttribute("role", "button");
+  button.setAttribute("aria-label", card.name);
+  button.style.setProperty("--card-color", card.color);
+  button.dataset.cardId = card.id;
+  button.innerHTML = `
+    <span class="brand-mark">${escapeHtml(card.name)}</span>
+    ${favoriteButtonMarkup(card)}
+    <span class="wallet-card__label">Штрихкод</span>
+  `;
+  button.addEventListener("click", (event) => {
+    if (event.target.closest(".favorite-button")) {
       return;
     }
-  }
-
-  if (state.dragAxis === "x" && !state.expanded) {
-    event.preventDefault();
-    state.dragMoved = true;
-    const rawPosition = state.startPosition - deltaX / getCardSpacing();
-    state.position = applyEdgeResistance(rawPosition);
-    recordSample(event.clientX);
-    updateScene();
-  }
-}
-
-function onPointerUp(event) {
-  if (!state.dragging) {
-    return;
-  }
-
-  if (state.pointerId !== null && event.pointerId !== state.pointerId) {
-    return;
-  }
-
-  const deltaY = event.clientY - state.startY;
-
-  state.dragging = false;
-  elements.walletStage.classList.remove("is-dragging");
-
-  if (state.dragAxis === "x" && !state.expanded) {
-    const velocity = estimateVelocity();
-    const projected = state.position - (velocity * 180) / getCardSpacing();
-    snapTo(Math.round(projected));
-  } else if (state.dragAxis === "y") {
-    if (deltaY < -56) {
-      setExpanded(true);
-    } else if (deltaY > 56) {
-      setExpanded(false);
+    openDetail(card.id);
+  });
+  button.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openDetail(card.id);
     }
-  }
-
-  state.pointerId = null;
-  state.samples = [];
+  });
+  bindFavoriteButton(button, card.id);
+  return button;
 }
 
-function onCardClick(event) {
-  if (!state.cards.length || state.dragMoved) {
+function createMiniCard(card) {
+  const button = document.createElement("article");
+  button.className = "mini-card";
+  button.tabIndex = 0;
+  button.setAttribute("role", "button");
+  button.setAttribute("aria-label", card.name);
+  button.style.setProperty("--card-color", card.color);
+  button.innerHTML = `
+    ${favoriteButtonMarkup(card)}
+    <span>${escapeHtml(card.name)}</span>
+  `;
+  button.addEventListener("click", (event) => {
+    if (event.target.closest(".favorite-button")) {
+      return;
+    }
+    openDetail(card.id);
+  });
+  button.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openDetail(card.id);
+    }
+  });
+  bindFavoriteButton(button, card.id);
+  return button;
+}
+
+function favoriteButtonMarkup(card) {
+  const active = card.favorite ? " is-active" : "";
+  const label = card.favorite ? "Убрать из избранного" : "Добавить в избранное";
+  return `
+    <button type="button" class="favorite-button${active}" data-favorite-id="${escapeHtml(card.id)}" aria-label="${label}">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 4h10a2 2 0 0 1 2 2v14l-7-3.6L5 20V6a2 2 0 0 1 2-2Z"></path>
+      </svg>
+    </button>
+  `;
+}
+
+function bindFavoriteButton(scope, cardId) {
+  const button = scope.querySelector("[data-favorite-id]");
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleFavorite(cardId);
+  });
+}
+
+function openDetail(cardId) {
+  const card = state.cards.find((item) => item.id === cardId);
+  if (!card) {
     return;
   }
 
-  const cardElement = event.target.closest(".wallet-card");
+  state.selectedCardId = card.id;
+  refs.detailTitle.textContent = card.name;
+  refs.detailBrand.textContent = card.name;
+  refs.detailHero.style.setProperty("--card-color", card.color);
+  renderBarcode(card);
+  updateDetailFavorite();
 
-  if (!cardElement) {
-    return;
-  }
-
-  const index = Number(cardElement.dataset.index);
-
-  if (Number.isNaN(index)) {
-    return;
-  }
-
-  if (index !== state.activeIndex) {
-    setExpanded(false);
-    snapTo(index);
-    return;
-  }
-
-  setExpanded(!state.expanded);
+  refs.detailOverlay.classList.add("is-visible");
+  refs.detailOverlay.setAttribute("aria-hidden", "false");
 }
 
-function onKeyDown(event) {
-  if (!state.cards.length) {
-    return;
-  }
-
-  if (event.key === "ArrowLeft" && !state.expanded) {
-    event.preventDefault();
-    snapTo(state.activeIndex - 1);
-  }
-
-  if (event.key === "ArrowRight" && !state.expanded) {
-    event.preventDefault();
-    snapTo(state.activeIndex + 1);
-  }
-
-  if (event.key === "ArrowUp") {
-    event.preventDefault();
-    setExpanded(true);
-  }
-
-  if (event.key === "ArrowDown" || event.key === "Escape") {
-    event.preventDefault();
-    setExpanded(false);
-  }
-}
-
-function setExpanded(expanded) {
-  state.expanded = expanded;
-  updateScene();
-}
-
-function snapTo(index) {
-  if (!state.cards.length) {
-    return;
-  }
-
-  state.position = clamp(index, 0, state.cards.length - 1);
-  updateScene();
-}
-
-function recordSample(x) {
-  const now = performance.now();
-  state.samples.push({ x, time: now });
-
-  while (state.samples.length > 2 && now - state.samples[0].time > 140) {
-    state.samples.shift();
-  }
-}
-
-function estimateVelocity() {
-  if (state.samples.length < 2) {
-    return 0;
-  }
-
-  const first = state.samples[0];
-  const last = state.samples[state.samples.length - 1];
-  const dt = Math.max(1, last.time - first.time);
-  return (last.x - first.x) / dt;
-}
-
-function applyEdgeResistance(position) {
-  const maxIndex = state.cards.length - 1;
-
-  if (position < 0) {
-    return position * 0.28;
-  }
-
-  if (position > maxIndex) {
-    return maxIndex + (position - maxIndex) * 0.28;
-  }
-
-  return position;
-}
-
-function getCardSpacing() {
-  const width = elements.walletStage.clientWidth || window.innerWidth;
-  return clamp(width * 0.44, 140, 230);
-}
-
-function getCardHeights() {
-  const mobile = window.innerWidth <= 760;
-  const vh = window.innerHeight;
-
-  if (mobile) {
-    return {
-      collapsed: 106,
-      preview: 156,
-      expanded: Math.min(vh * 0.74, 620)
-    };
-  }
-
-  return {
-    collapsed: 118,
-    preview: 172,
-    expanded: Math.min(vh * 0.78, 700)
+function renderBarcode(card) {
+  refs.barcodeBox.innerHTML = "";
+  const image = document.createElement("img");
+  image.className = "wallet-card__image";
+  image.src = card.barcodeImage;
+  image.alt = `${card.name} barcode`;
+  image.decoding = "async";
+  image.draggable = false;
+  image.onerror = () => {
+    if (!image.src.endsWith(PLACEHOLDER_IMAGE)) {
+      image.src = PLACEHOLDER_IMAGE;
+      image.alt = "Barcode placeholder";
+    }
   };
+  refs.barcodeBox.append(image);
+}
+
+function closeDetail() {
+  refs.detailOverlay.classList.remove("is-visible");
+  refs.detailOverlay.setAttribute("aria-hidden", "true");
+  refs.barcodeBox.innerHTML = "";
+  state.selectedCardId = null;
+}
+
+function updateDetailFavorite() {
+  const card = state.cards.find((item) => item.id === state.selectedCardId);
+  if (!card) {
+    return;
+  }
+  refs.toggleFavoriteButton.classList.toggle("is-active", card.favorite);
+  refs.toggleFavoriteButton.setAttribute(
+    "aria-label",
+    card.favorite ? "Убрать из избранного" : "Добавить в избранное"
+  );
+}
+
+function toggleFavorite(cardId) {
+  const card = state.cards.find((item) => item.id === cardId);
+  if (!card) {
+    return;
+  }
+
+  card.favorite = !card.favorite;
+  if (card.favorite) {
+    state.favorites.add(card.id);
+  } else {
+    state.favorites.delete(card.id);
+  }
+
+  saveFavorites();
+  renderHome();
+  renderCatalog();
+}
+
+function loadFavorites() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
+    state.favorites = new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+  } catch (_error) {
+    state.favorites = new Set();
+  }
+}
+
+function saveFavorites() {
+  localStorage.setItem(FAVORITES_KEY, JSON.stringify(Array.from(state.favorites)));
+}
+
+function getFilteredCards() {
+  const query = state.search.trim().toLocaleLowerCase("ru-RU");
+  const sorted = state.cards.slice().sort((a, b) => {
+    if (a.favorite !== b.favorite) {
+      return a.favorite ? -1 : 1;
+    }
+    return a.name.localeCompare(b.name, "ru-RU");
+  });
+
+  if (!query) {
+    return sorted;
+  }
+
+  return sorted.filter((card) =>
+    `${card.name} ${card.id}`.toLocaleLowerCase("ru-RU").includes(query)
+  );
+}
+
+function setActivePage(page) {
+  state.activePage = page === "catalog" ? "catalog" : "home";
+  renderPages();
+}
+
+function updateNetworkStatus() {
+  refs.offlineBanner.hidden = navigator.onLine;
+}
+
+function setupInstallPrompt() {
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    state.installPrompt = event;
+    show(refs.installBanner);
+  });
+
+  window.addEventListener("appinstalled", () => {
+    state.installPrompt = null;
+    hide(refs.installBanner);
+    showToast("Wallet установлен");
+  });
+}
+
+async function triggerInstall() {
+  if (!state.installPrompt) {
+    showToast("Откройте установку через меню браузера");
+    return;
+  }
+
+  state.installPrompt.prompt();
+  await state.installPrompt.userChoice;
+  state.installPrompt = null;
+  hide(refs.installBanner);
+}
+
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator) || location.protocol === "file:") {
+    return;
+  }
+
+  navigator.serviceWorker.register("./service-worker.js", { scope: "./" }).then((registration) => {
+    state.swRegistration = registration;
+    if (registration.waiting) {
+      show(refs.updateBanner);
+    }
+
+    registration.addEventListener("updatefound", () => {
+      const worker = registration.installing;
+      if (!worker) {
+        return;
+      }
+      worker.addEventListener("statechange", () => {
+        if (worker.state === "installed" && navigator.serviceWorker.controller) {
+          show(refs.updateBanner);
+        }
+      });
+    });
+  }).catch((error) => {
+    console.warn("[Wallet] Service worker registration failed", error);
+  });
+}
+
+function applyUpdate() {
+  if (state.swRegistration?.waiting) {
+    state.swRegistration.waiting.postMessage({ type: "SKIP_WAITING" });
+    navigator.serviceWorker.addEventListener("controllerchange", function reloadOnce() {
+      navigator.serviceWorker.removeEventListener("controllerchange", reloadOnce);
+      location.reload();
+    });
+    return;
+  }
+
+  location.reload();
+}
+
+function createMessage(message) {
+  const node = document.createElement("div");
+  node.className = "empty-state";
+  node.textContent = message;
+  return node;
 }
 
 function showEmptyState(message) {
-  elements.cardsTrack.innerHTML = `
-    <div class="empty-state">
-      <p>${message}</p>
-    </div>
-  `;
-  elements.activeTitle.textContent = "Wallet";
-  elements.statusText.textContent = message;
-  elements.activeIndex.textContent = "0/0";
-  elements.toggleExpandBtn.disabled = true;
+  refs.emptyState.hidden = false;
+  refs.emptyState.textContent = message;
+  refs.favoriteCountLabel.textContent = "0";
+  refs.totalCardsLabel.textContent = "0";
 }
 
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
+function replaceChildren(parent, children) {
+  parent.innerHTML = "";
+  parent.append(...children);
+}
+
+function show(element) {
+  element.hidden = false;
+}
+
+function hide(element) {
+  element.hidden = true;
+}
+
+function showToast(message) {
+  refs.toast.textContent = message;
+  refs.toast.hidden = false;
+  window.clearTimeout(showToast.timer);
+  showToast.timer = window.setTimeout(() => {
+    refs.toast.hidden = true;
+  }, 2200);
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
