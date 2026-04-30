@@ -202,7 +202,11 @@ function createWalletCard(card) {
   button.innerHTML = `
     <span class="brand-mark">${escapeHtml(card.name)}</span>
     ${favoriteButtonMarkup(card)}
+<<<<<<< HEAD
     <span class="wallet-card__label">Штрихкод</span>
+=======
+    <span class="wallet-card__label">Tap to view QR</span>
+>>>>>>> 7f340e3b343e968f9d825681ee496be6ea9dd6c7
   `;
   button.addEventListener("click", (event) => {
     if (event.target.closest(".favorite-button")) {

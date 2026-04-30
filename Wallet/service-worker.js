@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 const CACHE_NAME = "wallet-v7";
+=======
+const CACHE_NAME = "wallet-v8";
+>>>>>>> 7f340e3b343e968f9d825681ee496be6ea9dd6c7
 
 const PRECACHE_ASSETS = [
   "./",
