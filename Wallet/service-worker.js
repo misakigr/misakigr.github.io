@@ -1,46 +1,38 @@
-<<<<<<< HEAD
-const CACHE_NAME = "wallet-v7";
-=======
-const CACHE_NAME = "wallet-v8";
->>>>>>> 7f340e3b343e968f9d825681ee496be6ea9dd6c7
+"use strict";
 
+const APP_VERSION = "v9";
+const CACHE_NAME = `wallet-${APP_VERSION}`;
 const PRECACHE_ASSETS = [
   "./",
   "./index.html",
   "./app.js",
   "./styles.css",
   "./manifest.json",
-  "./service-worker.js",
+  "./version.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./barcodes/data.json",
   "./barcodes/lenta.png",
   "./barcodes/okey.png",
   "./barcodes/x5.png",
-  "./barcodes/mvideo.png",
   "./barcodes/auchan.png",
-  "./barcodes/health.png",
-  "./barcodes/placeholder.png"
+  "./barcodes/magnit.png"
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS))
   );
-  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
-    )
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener("message", (event) => {
@@ -54,18 +46,14 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  const request = event.request;
-
-  if (request.mode === "navigate") {
+  if (event.request.mode === "navigate") {
     event.respondWith(
-      caches.match("./index.html").then((cached) =>
-        cached || fetch(request).catch(() => Response.error())
-      )
+      caches.match("./index.html").then((cached) => cached || fetch(event.request))
     );
     return;
   }
 
-  event.respondWith(cacheFirst(request));
+  event.respondWith(cacheFirst(event.request));
 });
 
 async function cacheFirst(request) {
@@ -75,9 +63,9 @@ async function cacheFirst(request) {
   }
 
   const response = await fetch(request);
-  if (response && response.ok) {
+  if (response?.ok) {
     const cache = await caches.open(CACHE_NAME);
-    cache.put(request, response.clone());
+    await cache.put(request, response.clone());
   }
   return response;
 }

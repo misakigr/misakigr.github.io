@@ -1,17 +1,19 @@
 "use strict";
 
 const DATA_URL = "barcodes/data.json";
-const PLACEHOLDER_IMAGE = "barcodes/placeholder.png";
+const VERSION_URL = "version.json";
 const FAVORITES_KEY = "favorites";
+const APP_VERSION = "v9";
 
 const state = {
   cards: [],
   favorites: new Set(),
-  activePage: "home",
   search: "",
   selectedCardId: null,
   installPrompt: null,
-  swRegistration: null
+  swRegistration: null,
+  latestVersion: APP_VERSION,
+  menuOpen: false
 };
 
 window.walletState = state;
@@ -21,24 +23,22 @@ const refs = {
   searchInput: document.getElementById("searchInput"),
   favoritesGrid: document.getElementById("favoritesGrid"),
   walletGrid: document.getElementById("walletGrid"),
-  catalogGrid: document.getElementById("catalogGrid"),
   emptyState: document.getElementById("emptyState"),
   favoriteCountLabel: document.getElementById("favoriteCountLabel"),
   totalCardsLabel: document.getElementById("totalCardsLabel"),
   installBanner: document.getElementById("installBanner"),
   installButton: document.getElementById("installButton"),
-  updateBanner: document.getElementById("updateBanner"),
-  updateButton: document.getElementById("updateButton"),
   offlineBanner: document.getElementById("offlineBanner"),
   offlineDismiss: document.getElementById("offlineDismiss"),
   detailOverlay: document.getElementById("detailOverlay"),
   detailTitle: document.getElementById("detailTitle"),
-  detailHero: document.getElementById("detailHero"),
-  detailBrand: document.getElementById("detailBrand"),
   barcodeBox: document.getElementById("barcodeBox"),
   closeDetailButton: document.getElementById("closeDetailButton"),
-  toggleFavoriteButton: document.getElementById("toggleFavoriteButton"),
-  quickFavorites: document.getElementById("quickFavorites"),
+  appMenuButton: document.getElementById("appMenuButton"),
+  appMenu: document.getElementById("appMenu"),
+  currentVersionLabel: document.getElementById("currentVersionLabel"),
+  latestVersionLabel: document.getElementById("latestVersionLabel"),
+  forceUpdateButton: document.getElementById("forceUpdateButton"),
   toast: document.getElementById("toast")
 };
 
@@ -100,29 +100,12 @@ function sanitizeCard(rawCard) {
 }
 
 function bindEvents() {
-  document.querySelectorAll("[data-nav]").forEach((button) => {
-    button.addEventListener("click", () => setActivePage(button.dataset.nav));
-  });
-
   refs.searchInput.addEventListener("input", (event) => {
     state.search = event.target.value;
     renderHome();
   });
 
-  refs.quickFavorites.addEventListener("click", () => {
-    state.search = "";
-    refs.searchInput.value = "";
-    setActivePage("home");
-    refs.favoritesGrid.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-
   refs.closeDetailButton.addEventListener("click", closeDetail);
-  refs.toggleFavoriteButton.addEventListener("click", () => {
-    if (state.selectedCardId) {
-      toggleFavorite(state.selectedCardId);
-      updateDetailFavorite();
-    }
-  });
 
   refs.detailOverlay.addEventListener("click", (event) => {
     if (event.target === refs.detailOverlay) {
@@ -131,8 +114,15 @@ function bindEvents() {
   });
 
   refs.installButton.addEventListener("click", triggerInstall);
-  refs.updateButton.addEventListener("click", applyUpdate);
+  refs.appMenuButton.addEventListener("click", toggleAppMenu);
+  refs.forceUpdateButton.addEventListener("click", forceUpdate);
   refs.offlineDismiss.addEventListener("click", () => hide(refs.offlineBanner));
+
+  document.addEventListener("click", (event) => {
+    if (!refs.appMenu.contains(event.target) && !refs.appMenuButton.contains(event.target)) {
+      setAppMenuOpen(false);
+    }
+  });
 
   window.addEventListener("online", updateNetworkStatus);
   window.addEventListener("offline", updateNetworkStatus);
@@ -144,18 +134,8 @@ function bindEvents() {
 }
 
 function render() {
-  renderPages();
   renderHome();
-  renderCatalog();
-}
-
-function renderPages() {
-  document.querySelectorAll(".page").forEach((page) => {
-    page.classList.toggle("is-active", page.dataset.page === state.activePage);
-  });
-  document.querySelectorAll("[data-nav]").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.nav === state.activePage);
-  });
+  renderVersionLabels();
 }
 
 function renderHome() {
@@ -172,23 +152,6 @@ function renderHome() {
   );
 
   replaceChildren(refs.walletGrid, cards.map((card) => createWalletCard(card)));
-}
-
-function renderCatalog() {
-  const items = state.cards.map((card) => {
-    const node = document.createElement("button");
-    node.type = "button";
-    node.className = "catalog-item";
-    node.style.setProperty("--card-color", card.color);
-    node.innerHTML = `
-      <span>${escapeHtml(card.name)}</span>
-      <small>${escapeHtml(card.barcodeImage)}</small>
-    `;
-    node.addEventListener("click", () => openDetail(card.id));
-    return node;
-  });
-
-  replaceChildren(refs.catalogGrid, items);
 }
 
 function createWalletCard(card) {
@@ -275,10 +238,7 @@ function openDetail(cardId) {
 
   state.selectedCardId = card.id;
   refs.detailTitle.textContent = card.name;
-  refs.detailBrand.textContent = card.name;
-  refs.detailHero.style.setProperty("--card-color", card.color);
   renderBarcode(card);
-  updateDetailFavorite();
 
   refs.detailOverlay.classList.add("is-visible");
   refs.detailOverlay.setAttribute("aria-hidden", "false");
@@ -292,12 +252,6 @@ function renderBarcode(card) {
   image.alt = `${card.name} barcode`;
   image.decoding = "async";
   image.draggable = false;
-  image.onerror = () => {
-    if (!image.src.endsWith(PLACEHOLDER_IMAGE)) {
-      image.src = PLACEHOLDER_IMAGE;
-      image.alt = "Barcode placeholder";
-    }
-  };
   refs.barcodeBox.append(image);
 }
 
@@ -306,18 +260,6 @@ function closeDetail() {
   refs.detailOverlay.setAttribute("aria-hidden", "true");
   refs.barcodeBox.innerHTML = "";
   state.selectedCardId = null;
-}
-
-function updateDetailFavorite() {
-  const card = state.cards.find((item) => item.id === state.selectedCardId);
-  if (!card) {
-    return;
-  }
-  refs.toggleFavoriteButton.classList.toggle("is-active", card.favorite);
-  refs.toggleFavoriteButton.setAttribute(
-    "aria-label",
-    card.favorite ? "Убрать из избранного" : "Добавить в избранное"
-  );
 }
 
 function toggleFavorite(cardId) {
@@ -335,7 +277,6 @@ function toggleFavorite(cardId) {
 
   saveFavorites();
   renderHome();
-  renderCatalog();
 }
 
 function loadFavorites() {
@@ -367,11 +308,6 @@ function getFilteredCards() {
   return sorted.filter((card) =>
     `${card.name} ${card.id}`.toLocaleLowerCase("ru-RU").includes(query)
   );
-}
-
-function setActivePage(page) {
-  state.activePage = page === "catalog" ? "catalog" : "home";
-  renderPages();
 }
 
 function updateNetworkStatus() {
@@ -411,37 +347,86 @@ function registerServiceWorker() {
 
   navigator.serviceWorker.register("./service-worker.js", { scope: "./" }).then((registration) => {
     state.swRegistration = registration;
-    if (registration.waiting) {
-      show(refs.updateBanner);
-    }
-
-    registration.addEventListener("updatefound", () => {
-      const worker = registration.installing;
-      if (!worker) {
-        return;
-      }
-      worker.addEventListener("statechange", () => {
-        if (worker.state === "installed" && navigator.serviceWorker.controller) {
-          show(refs.updateBanner);
-        }
-      });
-    });
+    renderVersionLabels();
   }).catch((error) => {
     console.warn("[Wallet] Service worker registration failed", error);
   });
 }
 
-function applyUpdate() {
-  if (state.swRegistration?.waiting) {
-    state.swRegistration.waiting.postMessage({ type: "SKIP_WAITING" });
-    navigator.serviceWorker.addEventListener("controllerchange", function reloadOnce() {
-      navigator.serviceWorker.removeEventListener("controllerchange", reloadOnce);
-      location.reload();
-    });
+async function forceUpdate() {
+  setAppMenuOpen(false);
+  if (!navigator.onLine) {
+    showToast("Для обновления нужен интернет");
     return;
   }
 
-  location.reload();
+  showToast("Обновление...");
+
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((registration) => registration.unregister()));
+  }
+
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((key) => caches.delete(key)));
+  }
+
+  await Promise.allSettled([
+    fetch("./index.html", { cache: "reload" }),
+    fetch("./app.js", { cache: "reload" }),
+    fetch("./styles.css", { cache: "reload" }),
+    fetch("./service-worker.js", { cache: "reload" }),
+    fetch("./version.json", { cache: "reload" })
+  ]);
+
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((key) => caches.delete(key)));
+  }
+
+  const nextUrl = new URL(location.href);
+  nextUrl.searchParams.set("update", String(Date.now()));
+  location.replace(nextUrl.href);
+}
+
+function toggleAppMenu() {
+  const nextOpen = !state.menuOpen;
+  setAppMenuOpen(nextOpen);
+  if (nextOpen) {
+    refreshLatestVersion();
+  }
+}
+
+function setAppMenuOpen(open) {
+  state.menuOpen = open;
+  refs.appMenu.hidden = !open;
+  refs.appMenuButton.setAttribute("aria-expanded", String(open));
+}
+
+function renderVersionLabels() {
+  refs.currentVersionLabel.textContent = APP_VERSION;
+  refs.latestVersionLabel.textContent = state.latestVersion;
+}
+
+async function refreshLatestVersion() {
+  if (!navigator.onLine) {
+    state.latestVersion = "офлайн";
+    renderVersionLabels();
+    return;
+  }
+
+  try {
+    const response = await fetch(`${VERSION_URL}?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`version request failed with status ${response.status}`);
+    }
+    const payload = await response.json();
+    state.latestVersion = String(payload.version || APP_VERSION);
+  } catch (_error) {
+    state.latestVersion = "неизвестно";
+  }
+  renderVersionLabels();
 }
 
 function createMessage(message) {

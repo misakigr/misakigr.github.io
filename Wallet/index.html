@@ -25,14 +25,6 @@
       <button type="button" class="text-button" id="installButton">Установить</button>
     </div>
 
-    <div class="banner" id="updateBanner" hidden>
-      <div>
-        <strong>Доступно обновление</strong>
-        <span>Загрузите свежую офлайн-версию приложения.</span>
-      </div>
-      <button type="button" class="text-button" id="updateButton">Обновить</button>
-    </div>
-
     <div class="banner" id="offlineBanner" hidden>
       <div>
         <strong>Офлайн-режим</strong>
@@ -52,11 +44,22 @@
             <p class="eyebrow">Wallet</p>
             <h1 id="homeTitle">Главная</h1>
           </div>
-          <button type="button" class="icon-button" id="quickFavorites" aria-label="Избранное">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M7 4h10a2 2 0 0 1 2 2v14l-7-3.6L5 20V6a2 2 0 0 1 2-2Z"></path>
-            </svg>
-          </button>
+          <div class="app-menu-wrap">
+            <button type="button" class="icon-button menu-button" id="appMenuButton" aria-label="Меню" aria-expanded="false" aria-controls="appMenu">
+              <span aria-hidden="true">&#8942;</span>
+            </button>
+            <div class="app-menu" id="appMenu" hidden>
+              <div class="version-row">
+                <span>Текущая версия</span>
+                <strong id="currentVersionLabel">-</strong>
+              </div>
+              <div class="version-row">
+                <span>Последняя версия</span>
+                <strong id="latestVersionLabel">-</strong>
+              </div>
+              <button type="button" class="text-button menu-update-button" id="forceUpdateButton">Force Update</button>
+            </div>
+          </div>
         </header>
 
         <label class="search">
@@ -84,16 +87,6 @@
           <div class="empty-state" id="emptyState" hidden>Карты не найдены.</div>
         </section>
       </section>
-
-      <section class="page page--catalog" id="catalogPage" data-page="catalog" aria-labelledby="catalogTitle">
-        <header class="page-header">
-          <div>
-            <p class="eyebrow">Справочник</p>
-            <h1 id="catalogTitle">Каталог</h1>
-          </div>
-        </header>
-        <div class="catalog-grid" id="catalogGrid"></div>
-      </section>
     </main>
 
     <nav class="bottom-nav" aria-label="Навигация">
@@ -102,12 +95,6 @@
           <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.5Z"></path>
         </svg>
         <span>Главная</span>
-      </button>
-      <button type="button" class="nav-item" data-nav="catalog" aria-label="Каталог">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z"></path>
-        </svg>
-        <span>Каталог</span>
       </button>
     </nav>
   </div>
@@ -121,19 +108,8 @@
           </svg>
         </button>
         <h2 id="detailTitle">Карта</h2>
-        <button type="button" class="icon-button favorite-button" id="toggleFavoriteButton" aria-label="Избранное">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M7 4h10a2 2 0 0 1 2 2v14l-7-3.6L5 20V6a2 2 0 0 1 2-2Z"></path>
-          </svg>
-        </button>
+        <span aria-hidden="true"></span>
       </div>
-      <div class="detail-card" id="detailHero">
-        <div>
-          <p class="eyebrow">Карта лояльности</p>
-          <strong id="detailBrand">Wallet</strong>
-        </div>
-      </div>
-      
 
       <div class="barcode-panel">
         <div class="barcode-box" id="barcodeBox"></div>
