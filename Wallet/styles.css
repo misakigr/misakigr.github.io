@@ -1,6 +1,3 @@
-/* ═══════════════════════════════════════════
-   VARIABLES & RESET
-   ═══════════════════════════════════════════ */
 :root {
   color-scheme: dark;
   --bg: #111827;
@@ -34,12 +31,8 @@ body {
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   letter-spacing: 0;
-  -webkit-font-smoothing: antialiased;
 }
 
-/* ═══════════════════════════════════════════
-   BASE ELEMENTS
-   ═══════════════════════════════════════════ */
 button,
 input {
   font: inherit;
@@ -61,22 +54,75 @@ svg {
   stroke-width: 1.9;
 }
 
-/* ═══════════════════════════════════════════
-   LAYOUT & PAGES
-   ═══════════════════════════════════════════ */
 .app-shell {
   position: relative;
   width: 100%;
   min-height: 100vh;
   margin: 0 auto;
-  padding: calc(18px + env(safe-area-inset-top, 0px)) 18px
-         calc(var(--nav-height) + 18px + env(safe-area-inset-bottom, 0px));
+  padding: calc(18px + env(safe-area-inset-top, 0px)) 18px calc(var(--nav-height) + 18px + env(safe-area-inset-bottom, 0px));
   overflow: hidden;
 }
 
 .pages {
   width: min(100%, 760px);
   margin: 0 auto;
+}
+
+.background-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.06), transparent 32%),
+    radial-gradient(circle at 50% 100%, rgba(66, 198, 167, 0.12), transparent 42%);
+}
+
+.banner,
+.toast {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  width: min(calc(100% - 28px), 520px);
+  transform: translateX(-50%);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(17, 24, 39, 0.92);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.banner {
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+}
+
+.banner[hidden],
+.toast[hidden] {
+  display: none;
+}
+
+.banner strong,
+.banner span {
+  display: block;
+}
+
+.banner span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.text-button {
+  min-height: 42px;
+  border-radius: 14px;
+  padding: 0 16px;
+  background: var(--accent);
+  color: #06251d;
+  font-weight: 800;
 }
 
 .page {
@@ -90,8 +136,14 @@ svg {
 }
 
 @keyframes page-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .page-header {
@@ -110,13 +162,21 @@ svg {
   text-transform: uppercase;
 }
 
-h1, h2, p { margin: 0; }
-h1 { font-size: clamp(32px, 8vw, 44px); line-height: 1; }
-h2 { font-size: 20px; }
+h1,
+h2,
+p {
+  margin: 0;
+}
 
-/* ═══════════════════════════════════════════
-   COMPONENTS: BUTTONS, SEARCH, SECTIONS
-   ═══════════════════════════════════════════ */
+h1 {
+  font-size: clamp(32px, 8vw, 44px);
+  line-height: 1;
+}
+
+h2 {
+  font-size: 20px;
+}
+
 .icon-button {
   display: inline-flex;
   align-items: center;
@@ -135,15 +195,6 @@ h2 { font-size: 20px; }
   border-radius: 13px;
 }
 
-.text-button {
-  min-height: 42px;
-  border-radius: 14px;
-  padding: 0 16px;
-  background: var(--accent);
-  color: #06251d;
-  font-weight: 800;
-}
-
 .search {
   display: flex;
   align-items: center;
@@ -157,7 +208,9 @@ h2 { font-size: 20px; }
   background: rgba(255, 255, 255, 0.08);
 }
 
-.search svg { color: var(--muted); }
+.search svg {
+  color: var(--muted);
+}
 
 .search input {
   width: 100%;
@@ -168,9 +221,13 @@ h2 { font-size: 20px; }
   font-size: 18px;
 }
 
-.search input::placeholder { color: var(--muted); }
+.search input::placeholder {
+  color: var(--muted);
+}
 
-.section { margin-top: 26px; }
+.section {
+  margin-top: 26px;
+}
 
 .section-header {
   display: flex;
@@ -180,11 +237,10 @@ h2 { font-size: 20px; }
   color: var(--muted);
 }
 
-.section-header h2 { color: var(--text); }
+.section-header h2 {
+  color: var(--text);
+}
 
-/* ═══════════════════════════════════════════
-   GRIDS & CARDS
-   ═══════════════════════════════════════════ */
 .favorites-strip {
   display: grid;
   grid-auto-flow: column;
@@ -273,7 +329,10 @@ h2 { font-size: 20px; }
   transition: transform 160ms ease, color 160ms ease, background 160ms ease;
 }
 
-.favorite-button svg { width: 20px; height: 20px; }
+.favorite-button svg {
+  width: 20px;
+  height: 20px;
+}
 
 .favorite-button.is-active {
   color: var(--favorite);
@@ -281,7 +340,9 @@ h2 { font-size: 20px; }
   transform: scale(1.06);
 }
 
-.favorite-button.is-active svg { fill: currentColor; }
+.favorite-button.is-active svg {
+  fill: currentColor;
+}
 
 .detail-actions .favorite-button {
   position: static;
@@ -302,8 +363,15 @@ h2 { font-size: 20px; }
   overflow-wrap: anywhere;
 }
 
-.catalog-item span { font-size: 19px; font-weight: 900; }
-.catalog-item small { margin-top: 10px; color: rgba(255, 255, 255, 0.74); }
+.catalog-item span {
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.catalog-item small {
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.74);
+}
 
 .empty-state {
   padding: 18px;
@@ -311,9 +379,6 @@ h2 { font-size: 20px; }
   color: var(--muted);
 }
 
-/* ═══════════════════════════════════════════
-   MODAL & DETAIL VIEW
-   ═══════════════════════════════════════════ */
 .detail-overlay {
   position: fixed;
   z-index: 40;
@@ -325,26 +390,20 @@ h2 { font-size: 20px; }
   background: rgba(0, 0, 0, 0.54);
 }
 
-.detail-overlay.is-visible { display: flex; }
-
-.detail-sheet {
-  width: min(100%, 840px); /* 800px QR + отступы */
-  max-height: 85vh;
-  overflow-y: auto;
-  border: 1px solid var(--line);
-  border-radius: 28px 28px 22px 22px;
-  padding: 16px;
-  background: var(--panel-strong);
-  box-shadow: var(--shadow);
+.detail-overlay.is-visible {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
-/* 🔥 Порядок блоков внутри модалки */
-.detail-actions { order: 0; }
-.barcode-panel   { order: 1; }
-.detail-card     { order: 2; }
+.detail-sheet {
+  width: min(100%, 560px);
+  max-height: calc(100vh - 28px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 28px 28px 22px 22px;
+  padding: 14px;
+  background: var(--panel-strong);
+  box-shadow: var(--shadow);
+}
 
 .detail-actions {
   display: grid;
@@ -360,46 +419,39 @@ h2 { font-size: 20px; }
   white-space: nowrap;
 }
 
-/* 🔥 QR-код строго 800x600 */
-.barcode-panel {
-  width: 800px;
-  height: 600px;
-  max-width: 100%;   /* адаптив на узких экранах */
-  max-height: 75vh;  /* не уходит за viewport */
-  padding: 0;
-  background: #f8fafc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.barcode-box {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-}
-
-.barcode-box img {
-  width: 800px;
-  height: 600px;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain; /* сохраняет пропорции и читаемость сканером */
-  display: block;
-}
-
-/* Блок с названием карты */
 .detail-card {
-  padding: 18px;
-  min-height: 0;
+  min-height: 160px;
+  margin-top: 16px;
+  padding: 22px;
 }
 
 .detail-card strong {
   display: block;
+  margin-top: 20px;
   overflow-wrap: anywhere;
-  font-size: 24px;
-  line-height: 1.1;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.barcode-panel {
+  margin-top: 14px;
+  padding: 18px;
+  background: #f8fafc;
+}
+
+.barcode-box {
+  display: grid;
+  place-items: center;
+  min-height: 190px;
+}
+
+.barcode-box img {
+  display: block;
+  margin: 0 auto;
+  width: min(100%, 430px);
+  height: auto;
+  max-height: 62vh;
+  object-fit: contain;
 }
 
 .wallet-card__image {
@@ -410,9 +462,6 @@ h2 { font-size: 20px; }
   object-fit: contain;
 }
 
-/* ═══════════════════════════════════════════
-   BOTTOM NAVIGATION
-   ═══════════════════════════════════════════ */
 .bottom-nav {
   position: fixed;
   z-index: 20;
@@ -443,7 +492,6 @@ h2 { font-size: 20px; }
   background: transparent;
   color: var(--muted);
   font-weight: 800;
-  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .nav-item.is-active {
@@ -451,48 +499,12 @@ h2 { font-size: 20px; }
   color: var(--text);
 }
 
-/* ═══════════════════════════════════════════
-   TOAST & BANNER
-   ═══════════════════════════════════════════ */
-.banner,
-.toast {
-  position: fixed;
-  z-index: 30;
-  left: 50%;
-  width: min(calc(100% - 28px), 520px);
-  transform: translateX(-50%);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: rgba(17, 24, 39, 0.92);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(18px);
-}
-
-.banner {
-  top: calc(12px + env(safe-area-inset-top, 0px));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 14px;
-}
-
-.banner[hidden],
-.toast[hidden] { display: none; }
-
-.banner strong,
-.banner span { display: block; }
-.banner span { margin-top: 3px; color: var(--muted); font-size: 13px; }
-
 .toast {
   bottom: calc(var(--nav-height) + 18px + env(safe-area-inset-bottom, 0px));
   padding: 14px 18px;
   text-align: center;
 }
 
-/* ═══════════════════════════════════════════
-   RESPONSIVE
-   ═══════════════════════════════════════════ */
 @media (max-width: 390px) {
   .wallet-grid,
   .catalog-grid {
@@ -506,9 +518,5 @@ h2 { font-size: 20px; }
   .brand-mark,
   .mini-card > span {
     font-size: 20px;
-  }
-
-  .barcode-panel {
-    height: 50vh; /* сохраняем пропорции на телефонах */
   }
 }
