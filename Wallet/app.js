@@ -276,7 +276,7 @@ function openDetail(cardId) {
   state.selectedCardId = card.id;
   refs.detailTitle.textContent = card.name;
   refs.detailBrand.textContent = card.name;
-  //refs.detailHero.style.setProperty("--card-color", card.color);
+  refs.detailHero.style.setProperty("--card-color", card.color);
   renderBarcode(card);
   updateDetailFavorite();
 
