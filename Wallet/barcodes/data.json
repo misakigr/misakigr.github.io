@@ -18,20 +18,14 @@
     "color": "#68bf3f"
   },
   {
-    "id": "sample-mvideo",
-    "name": "М.Видео",
-    "barcodeImage": "barcodes/mvideo.png",
-    "color": "#ef2020"
-  },
-  {
     "id": "sample-auchan",
-    "name": "Ашан",
+    "name": "Гашан",
     "barcodeImage": "barcodes/auchan.png",
     "color": "#ffbf00"
   },
   {
     "id": "sample-health",
-    "name": "О здоровье",
+    "name": "Магнит",
     "barcodeImage": "barcodes/health.png",
     "color": "#e83b43"
   }
