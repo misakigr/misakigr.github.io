@@ -1,4 +1,4 @@
-const CACHE_NAME = "wallet-v7";
+const CACHE_NAME = "wallet-v8";
 
 const PRECACHE_ASSETS = [
   "./",
