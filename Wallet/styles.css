@@ -419,10 +419,9 @@ h2 {
   white-space: nowrap;
 }
 
-.detail-card {
-  min-height: 160px;
-  margin-top: 16px;
-  padding: 22px;
+.detail-card strong {
+  font-size: 24px;   /* было 34 → уменьшаем */
+  margin-top: 6px;
 }
 
 .detail-card strong {
@@ -442,7 +441,7 @@ h2 {
 .barcode-box {
   display: grid;
   place-items: center;
-  min-height: 190px;
+  min-height: 280px;
 }
 
 .barcode-box img {
@@ -450,7 +449,7 @@ h2 {
   margin: 0 auto;
   width: min(100%, 430px);
   height: auto;
-  max-height: 62vh;
+  max-height: 75vh;
   object-fit: contain;
 }
 
