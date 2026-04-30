@@ -26,7 +26,7 @@
   {
     "id": "sample-health",
     "name": "Магнит",
-    "barcodeImage": "barcodes/health.png",
+    "barcodeImage": "barcodes/magnit.png",
     "color": "#e83b43"
   }
 ]
