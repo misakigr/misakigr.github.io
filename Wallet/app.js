@@ -1,9 +1,9 @@
 "use strict";
 
-const DATA_URL = "barcodes/data.json";
-const VERSION_URL = "version.json";
+const DATA_URL = "./barcodes/data.json";
+const VERSION_URL = "./version.json";
 const FAVORITES_KEY = "favorites";
-const APP_VERSION = "v9";
+const APP_VERSION = "v10";
 
 const state = {
   cards: [],
@@ -53,7 +53,6 @@ async function initApp() {
 
   try {
     state.cards = await loadCards();
-    console.log("state.cards[0]", state.cards[0]);
     render();
   } catch (error) {
     console.error("[Wallet] Failed to initialize", error);
@@ -100,26 +99,31 @@ function sanitizeCard(rawCard) {
 }
 
 function bindEvents() {
-  refs.searchInput.addEventListener("input", (event) => {
+  on(refs.searchInput, "input", (event) => {
     state.search = event.target.value;
     renderHome();
   });
 
-  refs.closeDetailButton.addEventListener("click", closeDetail);
+  on(refs.closeDetailButton, "click", closeDetail);
 
-  refs.detailOverlay.addEventListener("click", (event) => {
+  on(refs.detailOverlay, "click", (event) => {
     if (event.target === refs.detailOverlay) {
       closeDetail();
     }
   });
 
-  refs.installButton.addEventListener("click", triggerInstall);
-  refs.appMenuButton.addEventListener("click", toggleAppMenu);
-  refs.forceUpdateButton.addEventListener("click", forceUpdate);
-  refs.offlineDismiss.addEventListener("click", () => hide(refs.offlineBanner));
+  on(refs.installButton, "click", triggerInstall);
+  on(refs.appMenuButton, "click", toggleAppMenu);
+  on(refs.forceUpdateButton, "click", forceUpdate);
+  on(refs.offlineDismiss, "click", () => hide(refs.offlineBanner));
 
   document.addEventListener("click", (event) => {
-    if (!refs.appMenu.contains(event.target) && !refs.appMenuButton.contains(event.target)) {
+    if (
+      refs.appMenu &&
+      refs.appMenuButton &&
+      !refs.appMenu.contains(event.target) &&
+      !refs.appMenuButton.contains(event.target)
+    ) {
       setAppMenuOpen(false);
     }
   });
@@ -139,17 +143,25 @@ function render() {
 }
 
 function renderHome() {
+  if (!refs.walletGrid) {
+    return;
+  }
+
   const cards = getFilteredCards();
   const favorites = cards.filter((card) => card.favorite);
 
-  refs.favoriteCountLabel.textContent = String(favorites.length);
-  refs.totalCardsLabel.textContent = String(cards.length);
-  refs.emptyState.hidden = cards.length > 0;
+  setText(refs.favoriteCountLabel, String(favorites.length));
+  setText(refs.totalCardsLabel, String(cards.length));
+  if (refs.emptyState) {
+    refs.emptyState.hidden = cards.length > 0;
+  }
 
-  replaceChildren(refs.favoritesGrid, favorites.length
-    ? favorites.map((card) => createMiniCard(card))
-    : [createMessage("Нет избранных карт")]
-  );
+  if (refs.favoritesGrid) {
+    replaceChildren(refs.favoritesGrid, favorites.length
+      ? favorites.map((card) => createMiniCard(card))
+      : [createMessage("Нет избранных карт")]
+    );
+  }
 
   replaceChildren(refs.walletGrid, cards.map((card) => createWalletCard(card)));
 }
@@ -224,6 +236,9 @@ function favoriteButtonMarkup(card) {
 
 function bindFavoriteButton(scope, cardId) {
   const button = scope.querySelector("[data-favorite-id]");
+  if (!button) {
+    return;
+  }
   button.addEventListener("click", (event) => {
     event.stopPropagation();
     toggleFavorite(cardId);
@@ -237,14 +252,20 @@ function openDetail(cardId) {
   }
 
   state.selectedCardId = card.id;
-  refs.detailTitle.textContent = card.name;
+  setText(refs.detailTitle, card.name);
   renderBarcode(card);
 
-  refs.detailOverlay.classList.add("is-visible");
-  refs.detailOverlay.setAttribute("aria-hidden", "false");
+  if (refs.detailOverlay) {
+    refs.detailOverlay.classList.add("is-visible");
+    refs.detailOverlay.setAttribute("aria-hidden", "false");
+  }
 }
 
 function renderBarcode(card) {
+  if (!refs.barcodeBox) {
+    return;
+  }
+
   refs.barcodeBox.innerHTML = "";
   const image = document.createElement("img");
   image.className = "wallet-card__image";
@@ -256,9 +277,13 @@ function renderBarcode(card) {
 }
 
 function closeDetail() {
-  refs.detailOverlay.classList.remove("is-visible");
-  refs.detailOverlay.setAttribute("aria-hidden", "true");
-  refs.barcodeBox.innerHTML = "";
+  if (refs.detailOverlay) {
+    refs.detailOverlay.classList.remove("is-visible");
+    refs.detailOverlay.setAttribute("aria-hidden", "true");
+  }
+  if (refs.barcodeBox) {
+    refs.barcodeBox.innerHTML = "";
+  }
   state.selectedCardId = null;
 }
 
@@ -311,7 +336,9 @@ function getFilteredCards() {
 }
 
 function updateNetworkStatus() {
-  refs.offlineBanner.hidden = navigator.onLine;
+  if (refs.offlineBanner) {
+    refs.offlineBanner.hidden = navigator.onLine;
+  }
 }
 
 function setupInstallPrompt() {
@@ -399,14 +426,18 @@ function toggleAppMenu() {
 }
 
 function setAppMenuOpen(open) {
+  if (!refs.appMenu || !refs.appMenuButton) {
+    return;
+  }
+
   state.menuOpen = open;
   refs.appMenu.hidden = !open;
   refs.appMenuButton.setAttribute("aria-expanded", String(open));
 }
 
 function renderVersionLabels() {
-  refs.currentVersionLabel.textContent = APP_VERSION;
-  refs.latestVersionLabel.textContent = state.latestVersion;
+  setText(refs.currentVersionLabel, APP_VERSION);
+  setText(refs.latestVersionLabel, state.latestVersion);
 }
 
 async function refreshLatestVersion() {
@@ -437,32 +468,60 @@ function createMessage(message) {
 }
 
 function showEmptyState(message) {
-  refs.emptyState.hidden = false;
-  refs.emptyState.textContent = message;
-  refs.favoriteCountLabel.textContent = "0";
-  refs.totalCardsLabel.textContent = "0";
+  if (refs.emptyState) {
+    refs.emptyState.hidden = false;
+    refs.emptyState.textContent = message;
+  }
+  setText(refs.favoriteCountLabel, "0");
+  setText(refs.totalCardsLabel, "0");
 }
 
 function replaceChildren(parent, children) {
+  if (!parent) {
+    return;
+  }
+
   parent.innerHTML = "";
   parent.append(...children);
 }
 
 function show(element) {
+  if (!element) {
+    return;
+  }
   element.hidden = false;
 }
 
 function hide(element) {
+  if (!element) {
+    return;
+  }
   element.hidden = true;
 }
 
 function showToast(message) {
+  if (!refs.toast) {
+    return;
+  }
+
   refs.toast.textContent = message;
   refs.toast.hidden = false;
   window.clearTimeout(showToast.timer);
   showToast.timer = window.setTimeout(() => {
     refs.toast.hidden = true;
   }, 2200);
+}
+
+function on(element, eventName, handler) {
+  if (element) {
+    element.addEventListener(eventName, handler);
+  }
+}
+
+function setText(element, value) {
+  if (element) {
+    element.textContent = value;
+  }
 }
 
 function escapeHtml(value) {

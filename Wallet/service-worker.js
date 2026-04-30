@@ -1,12 +1,14 @@
 "use strict";
 
-const APP_VERSION = "v9";
+const APP_VERSION = "v10";
 const CACHE_NAME = `wallet-${APP_VERSION}`;
 const PRECACHE_ASSETS = [
   "./",
   "./index.html",
   "./app.js",
+  "./app.js?v=10",
   "./styles.css",
+  "./styles.css?v=10",
   "./manifest.json",
   "./version.json",
   "./icons/icon-192.png",
@@ -36,7 +38,7 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("message", (event) => {
-  if (event.data?.type === "SKIP_WAITING") {
+  if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 });
@@ -63,7 +65,7 @@ async function cacheFirst(request) {
   }
 
   const response = await fetch(request);
-  if (response?.ok) {
+  if (response && response.ok) {
     const cache = await caches.open(CACHE_NAME);
     await cache.put(request, response.clone());
   }
