@@ -2,7 +2,7 @@
   "name": "Loyalty Wallet",
   "short_name": "Wallet",
   "description": "Offline-first wallet for loyalty cards and barcode images.",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#111827",

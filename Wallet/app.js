@@ -3,7 +3,16 @@
 const DATA_URL = "./barcodes/data.json";
 const VERSION_URL = "./version.json";
 const FAVORITES_KEY = "favorites";
-const APP_VERSION = "2026.04.1";
+const APP_VERSION = "2026.04.2";
+const UPDATE_ASSETS = [
+  "./index.html",
+  "./app.js",
+  "./styles.css",
+  "./service-worker.js",
+  "./version.json",
+  "./manifest.json",
+  DATA_URL
+];
 
 const state = {
   cards: [],
@@ -15,8 +24,6 @@ const state = {
   latestVersion: APP_VERSION,
   menuOpen: false
 };
-
-window.walletState = state;
 
 const refs = {
   pages: document.getElementById("pages"),
@@ -389,6 +396,14 @@ async function forceUpdate() {
 
   showToast("Обновление...");
 
+  try {
+    await verifyUpdateAssets();
+  } catch (error) {
+    console.warn("[Wallet] Update check failed", error);
+    showToast("Обновление недоступно");
+    return;
+  }
+
   if ("serviceWorker" in navigator) {
     const registrations = await navigator.serviceWorker.getRegistrations();
     await Promise.all(registrations.map((registration) => registration.unregister()));
@@ -399,22 +414,19 @@ async function forceUpdate() {
     await Promise.all(keys.map((key) => caches.delete(key)));
   }
 
-  await Promise.allSettled([
-    fetch("./index.html", { cache: "reload" }),
-    fetch("./app.js", { cache: "reload" }),
-    fetch("./styles.css", { cache: "reload" }),
-    fetch("./service-worker.js", { cache: "reload" }),
-    fetch("./version.json", { cache: "reload" })
-  ]);
-
-  if ("caches" in window) {
-    const keys = await caches.keys();
-    await Promise.all(keys.map((key) => caches.delete(key)));
-  }
-
   const nextUrl = new URL(location.href);
   nextUrl.searchParams.set("update", String(Date.now()));
   location.replace(nextUrl.href);
+}
+
+async function verifyUpdateAssets() {
+  const results = await Promise.all(UPDATE_ASSETS.map((asset) =>
+    fetch(`${asset}${asset.includes("?") ? "&" : "?"}update=${Date.now()}`, { cache: "reload" })
+  ));
+  const failed = results.find((response) => !response.ok);
+  if (failed) {
+    throw new Error(`update asset failed with status ${failed.status}`);
+  }
 }
 
 function toggleAppMenu() {

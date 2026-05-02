@@ -125,12 +125,7 @@ svg {
 }
 
 .page {
-  display: none;
   position: relative;
-}
-
-.page.is-active {
-  display: block;
   animation: page-in 220ms ease;
 }
 
@@ -170,6 +165,15 @@ p {
 h1 {
   font-size: clamp(32px, 8vw, 44px);
   line-height: 1;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 h2 {
