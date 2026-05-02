@@ -3,7 +3,7 @@
 const DATA_URL = "./barcodes/data.json";
 const VERSION_URL = "./version.json";
 const FAVORITES_KEY = "favorites";
-const APP_VERSION = "v10";
+const APP_VERSION = "2026.04.1";
 
 const state = {
   cards: [],
